@@ -2,6 +2,7 @@ import './index.css'
 import { useState, useEffect } from 'react'
 import { GameCanvas } from '@renderer/GameCanvas'
 import { useGameStore } from '@game/state/gameStore'
+import { ErrorBoundary } from '@ui/ErrorBoundary'
 import {
   ResourcePanel,
   DeploymentPanel,
@@ -96,7 +97,9 @@ function App() {
               position: 'relative',
             }}
           >
-            <GameCanvas />
+            <ErrorBoundary title="Rendering Error" showReload>
+              <GameCanvas />
+            </ErrorBoundary>
           </div>
 
           {/* Right Sidebar: Resources */}

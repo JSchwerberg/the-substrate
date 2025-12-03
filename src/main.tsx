@@ -2,6 +2,7 @@ import 'pixi.js/unsafe-eval' // Must be first - enables CSP-compliant shader com
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { ErrorBoundary } from '@ui/ErrorBoundary'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
@@ -10,6 +11,8 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary title="The Substrate encountered an error" showReload>
+      <App />
+    </ErrorBoundary>
   </StrictMode>
 )

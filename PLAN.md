@@ -183,7 +183,7 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 ### Medium Priority (P2)
 - [ ] Units cannot move after victory (tick loop stops)
 - [ ] No pathfinding cache (performance)
-- [ ] No error boundaries in React components
+- [x] ~~No error boundaries in React components~~ → Fixed: ErrorBoundary wraps App + GameCanvas
 - [x] ~~551-line gameStore still large~~ → Fixed: 333 lines + 7 slices
 
 ### Low Priority (P3)

@@ -44,6 +44,15 @@ export const ENERGY_DEPLOYMENT_COSTS = {
   SCALING_MULTIPLIER: 1.5,
 } as const
 
+// ============= Memory Costs (Capacity Gating) =============
+
+export const MEMORY_COST = {
+  /** Memory reserved while a Scout is alive */
+  SCOUT: 20,
+  /** Memory reserved while a Purifier is alive */
+  PURIFIER: 35,
+} as const
+
 export const ENERGY_REGEN_PER_TICK = 5
 
 // ============= Upgrade System =============

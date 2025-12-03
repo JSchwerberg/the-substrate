@@ -177,7 +177,7 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 
 ### High Priority (P1)
 - [x] ~~Energy resource unused (no regeneration, no cost)~~ → Fixed: regen + deployment cost
-- [ ] Memory resource unused (no capacity gating) → Future
+- [x] ~~Memory resource unused (no capacity gating)~~ → Fixed: Scout 20, Purifier 35 memory cost
 - [x] ~~No intervention system during expeditions~~ → Fixed: Retreat (50E) + Scan (30E)
 
 ### Medium Priority (P2)

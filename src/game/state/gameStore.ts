@@ -20,6 +20,7 @@ import {
   DEPLOY_COST,
   ENERGY_DEPLOYMENT_COSTS,
   ENERGY_REGEN_PER_TICK,
+  MEMORY_COST,
   UPGRADES,
   DIFFICULTY,
   INTERVENTIONS,
@@ -78,6 +79,22 @@ import type {
 export const DEPLOYMENT_COSTS: Record<ProcessArchetype, Partial<Resources>> = {
   scout: { cycles: DEPLOY_COST.SCOUT },
   purifier: { cycles: DEPLOY_COST.PURIFIER },
+}
+
+// ============= Memory Capacity Helpers =============
+
+import type { Process } from '@core/models/process'
+
+/** Get memory cost for a process archetype */
+export function getMemoryCost(archetype: ProcessArchetype): number {
+  return archetype === 'scout' ? MEMORY_COST.SCOUT : MEMORY_COST.PURIFIER
+}
+
+/** Calculate total memory used by alive processes */
+export function calculateUsedMemory(processes: Process[]): number {
+  return processes
+    .filter(p => p.status !== 'destroyed')
+    .reduce((sum, p) => sum + getMemoryCost(p.archetype), 0)
 }
 
 // ============= Orchestration Interface =============
@@ -196,6 +213,15 @@ export const useGameStore = create<GameState>()(
         p => p.position.x === spawnPoint.x && p.position.y === spawnPoint.y
       )
       if (occupied) return
+
+      // Check memory capacity
+      const { capacity } = get()
+      const usedMemory = calculateUsedMemory(processes)
+      const memoryCost = getMemoryCost(archetype)
+      if (usedMemory + memoryCost > capacity.maxMemory) {
+        console.warn(`Insufficient memory: ${usedMemory}/${capacity.maxMemory}, need ${memoryCost}`)
+        return
+      }
 
       // Calculate deployment cost based on expedition status
       let cost: Partial<Resources>

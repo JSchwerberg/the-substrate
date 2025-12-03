@@ -3,7 +3,7 @@
  */
 
 import { memo } from 'react'
-import { useGameStore } from '@game/state/gameStore'
+import { useGameStore, getMemoryCost, calculateUsedMemory } from '@game/state/gameStore'
 import { ARCHETYPES, ProcessArchetype } from '@core/models/process'
 import { DEPLOY_COST, ENERGY_DEPLOYMENT_COSTS, INTERVENTIONS } from '@core/constants/GameConfig'
 import type { InterventionType } from '@core/constants/GameConfig'
@@ -14,7 +14,11 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
   const expeditionActive = useGameStore(state => state.expeditionActive)
   const midExpeditionDeployCount = useGameStore(state => state.midExpeditionDeployCount)
   const resources = useGameStore(state => state.resources)
+  const capacity = useGameStore(state => state.capacity)
+  const processes = useGameStore(state => state.processes)
   const selectedProcessId = useGameStore(state => state.selectedProcessId)
+
+  const usedMemory = calculateUsedMemory(processes)
 
   const handleDeploy = (archetype: ProcessArchetype) => {
     deployProcess(archetype, 0)
@@ -39,6 +43,14 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
 
   const canAfford = (archetype: ProcessArchetype) => {
     const cost = getDeploymentCost(archetype)
+    const memoryCost = getMemoryCost(archetype)
+
+    // Check memory capacity
+    if (usedMemory + memoryCost > capacity.maxMemory) {
+      return false
+    }
+
+    // Check resource cost
     if (cost.resource === 'ENERGY') {
       return resources.energy >= cost.amount
     } else {
@@ -68,6 +80,53 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
       >
         DEPLOY PROCESS
       </h3>
+
+      {/* Memory capacity indicator */}
+      <div
+        style={{
+          marginBottom: '12px',
+          padding: '8px',
+          backgroundColor: '#0f1621',
+          borderRadius: '4px',
+          fontFamily: 'monospace',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: '0.7rem',
+            color: '#888',
+            marginBottom: '4px',
+          }}
+        >
+          <span>MEMORY</span>
+          <span
+            style={{
+              color: usedMemory >= capacity.maxMemory ? '#ef4444' : '#a78bfa',
+            }}
+          >
+            {usedMemory}/{capacity.maxMemory}
+          </span>
+        </div>
+        <div
+          style={{
+            height: '6px',
+            backgroundColor: '#1a1a2e',
+            borderRadius: '3px',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              width: `${(usedMemory / capacity.maxMemory) * 100}%`,
+              backgroundColor: usedMemory >= capacity.maxMemory ? '#ef4444' : '#a78bfa',
+              transition: 'width 0.2s ease',
+            }}
+          />
+        </div>
+      </div>
 
       <div
         style={{
@@ -220,12 +279,27 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
                   width: '100%',
                   fontSize: '0.75rem',
                   fontFamily: 'monospace',
-                  color: affordable ? '#fbbf24' : '#ef4444',
-                  fontWeight: 600,
-                  textAlign: 'center',
+                  display: 'flex',
+                  justifyContent: 'space-between',
                 }}
               >
-                {cost.resource}: {cost.amount}
+                <span
+                  style={{
+                    color: affordable ? '#fbbf24' : '#ef4444',
+                    fontWeight: 600,
+                  }}
+                >
+                  {cost.resource}: {cost.amount}
+                </span>
+                <span
+                  style={{
+                    color:
+                      usedMemory + getMemoryCost(key) > capacity.maxMemory ? '#ef4444' : '#a78bfa',
+                    fontWeight: 600,
+                  }}
+                >
+                  MEM: {getMemoryCost(key)}
+                </span>
               </div>
             </button>
           )

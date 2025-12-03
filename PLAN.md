@@ -185,6 +185,9 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - Prettier
 - Vitest with coverage
 
+**Pending:**
+- [ ] Set up GitHub Pages deployment (auto-deploy on push to main)
+
 ---
 
 ## Future (Out of Scope for MVP)

@@ -40,10 +40,6 @@ function createMazeGrid(): Grid {
   return grid
 }
 
-function pathLength(path: GridPosition[]): number {
-  return path.length
-}
-
 function isPathValid(grid: Grid, path: GridPosition[]): boolean {
   if (path.length === 0) return false
 
@@ -79,7 +75,7 @@ function isPathValid(grid: Grid, path: GridPosition[]): boolean {
 }
 
 function isShortestPath(
-  grid: Grid,
+  _grid: Grid,
   start: GridPosition,
   end: GridPosition,
   path: GridPosition[]

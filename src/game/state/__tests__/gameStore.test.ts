@@ -8,14 +8,8 @@ import {
   selectProcesses,
 } from '../gameStore'
 import type { GameState, Difficulty } from '../gameStore'
-import {
-  createMockGameState,
-  createMockPersistentData,
-  createMockUpgrades,
-  createMockBehaviorRules,
-} from '@persistence/__tests__/fixtures'
+import { createMockPersistentData, createMockUpgrades } from '@persistence/__tests__/fixtures'
 import type { BehaviorRule } from '@core/models/behavior'
-import type { GeneratorOptions } from '@core/generation/SectorGenerator'
 
 // Mock dependencies
 vi.mock('@persistence/SaveManager', () => ({
@@ -231,7 +225,6 @@ describe('gameStore', () => {
     it('addResources should add cycles', () => {
       // Set to 50 so we can add without hitting cap
       useGameStore.setState({ resources: { cycles: 50, memory: 50, energy: 75 } })
-      const initialCycles = 50
       useGameStore.getState().addResources({ cycles: 30 })
 
       expect(useGameStore.getState().resources.cycles).toBe(80)
@@ -270,7 +263,9 @@ describe('gameStore', () => {
 
   describe('sector generation', () => {
     it('generateNewSector should create a sector', () => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       const state = useGameStore.getState()
       expect(state.currentSector).not.toBeNull()
@@ -279,30 +274,17 @@ describe('gameStore', () => {
     })
 
     it('generateNewSector should reset processes', () => {
-      useGameStore.setState({
-        processes: [
-          {
-            id: 'test',
-            archetype: 'scout',
-            position: { x: 0, y: 0 },
-            stats: {
-              maxHealth: 60,
-              health: 60,
-              attack: 8,
-              defense: 3,
-              speed: 3,
-              sightRange: 4,
-              maxActionPoints: 2,
-              actionPoints: 2,
-            },
-            status: 'idle',
-            movementTarget: null,
-            path: [],
-          },
-        ],
-      })
+      // Deploy a process first
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
+      useGameStore.getState().deployProcess('scout', 0)
+      expect(useGameStore.getState().processes.length).toBeGreaterThan(0)
 
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      // Generate new sector should reset processes
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       expect(useGameStore.getState().processes).toHaveLength(0)
     })
@@ -313,7 +295,9 @@ describe('gameStore', () => {
         expeditionResult: 'victory',
       })
 
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       expect(useGameStore.getState().expeditionActive).toBe(false)
       expect(useGameStore.getState().expeditionResult).toBe('active')
@@ -328,7 +312,9 @@ describe('gameStore', () => {
         },
       })
 
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       expect(useGameStore.getState().expeditionScore.cachesCollected).toBe(0)
       expect(useGameStore.getState().expeditionScore.malwareDestroyed).toBe(0)
@@ -340,7 +326,9 @@ describe('gameStore', () => {
         combatLog: ['Log 1', 'Log 2'],
       })
 
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       expect(useGameStore.getState().combatLog).toHaveLength(0)
     })
@@ -350,7 +338,9 @@ describe('gameStore', () => {
         persistentData: createMockPersistentData({ totalData: 500 }),
       })
 
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       expect(useGameStore.getState().persistentData.totalData).toBe(500)
     })
@@ -360,21 +350,27 @@ describe('gameStore', () => {
         upgrades: createMockUpgrades({ maxHealth: 5 }),
       })
 
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       expect(useGameStore.getState().upgrades.maxHealth).toBe(5)
     })
 
     it('generateNewSector should spawn malware based on difficulty', () => {
       useGameStore.setState({ selectedDifficulty: 'hard' })
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       const state = useGameStore.getState()
       // Hard difficulty should spawn more malware than easy
       const hardMalwareCount = state.malware.length
 
       useGameStore.setState({ selectedDifficulty: 'easy' })
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
 
       const easyMalwareCount = useGameStore.getState().malware.length
       expect(hardMalwareCount).toBeGreaterThanOrEqual(easyMalwareCount)
@@ -385,7 +381,9 @@ describe('gameStore', () => {
 
   describe('expedition management', () => {
     beforeEach(() => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
     })
 
     it('startExpedition should mark expedition as active', () => {
@@ -426,7 +424,9 @@ describe('gameStore', () => {
 
   describe('process deployment', () => {
     beforeEach(() => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
     })
 
     it('deployProcess should create process at spawn point', () => {
@@ -513,7 +513,9 @@ describe('gameStore', () => {
 
   describe('process selection', () => {
     beforeEach(() => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       useGameStore.getState().deployProcess('scout', 0)
     })
 
@@ -633,14 +635,14 @@ describe('gameStore', () => {
         persistentData: createMockPersistentData({ totalData: 5000 }),
       })
 
-      const upgrades: Array<keyof typeof useGameStore.getState.upgrades> = [
+      const upgradeTypes: Array<'maxHealth' | 'attack' | 'defense' | 'startingCycles'> = [
         'maxHealth',
         'attack',
         'defense',
         'startingCycles',
       ]
 
-      upgrades.forEach(upgrade => {
+      upgradeTypes.forEach(upgrade => {
         const initialLevel = useGameStore.getState().upgrades[upgrade]
         useGameStore.getState().purchaseUpgrade(upgrade)
         expect(useGameStore.getState().upgrades[upgrade]).toBe(initialLevel + 1)
@@ -875,7 +877,9 @@ describe('gameStore', () => {
 
   describe('tick system', () => {
     beforeEach(() => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       useGameStore.getState().deployProcess('scout', 0)
       useGameStore.getState().startExpedition()
     })
@@ -936,7 +940,9 @@ describe('gameStore', () => {
 
   describe('visibility updates', () => {
     it('updateVisibility should update fog of war', () => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       useGameStore.getState().deployProcess('scout', 0)
 
       const grid1 = useGameStore.getState().currentSector?.grid
@@ -950,7 +956,9 @@ describe('gameStore', () => {
     })
 
     it('updateVisibility should update sector grid reference', () => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       useGameStore.getState().deployProcess('scout', 0)
       const sectorBefore = useGameStore.getState().currentSector
 
@@ -967,7 +975,9 @@ describe('gameStore', () => {
 
   describe('movement', () => {
     beforeEach(() => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       useGameStore.getState().deployProcess('scout', 0)
     })
 
@@ -1010,7 +1020,9 @@ describe('gameStore', () => {
     })
 
     it('deployProcess should not mutate processes array', () => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       const before = useGameStore.getState().processes
       useGameStore.getState().deployProcess('scout', 0)
       const after = useGameStore.getState().processes
@@ -1094,7 +1106,9 @@ describe('gameStore', () => {
 
   describe('edge cases', () => {
     it('should handle deploying with zero cycles', () => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       useGameStore.setState({ resources: { cycles: 0, memory: 50, energy: 75 } })
 
       useGameStore.getState().deployProcess('scout', 0)
@@ -1117,7 +1131,9 @@ describe('gameStore', () => {
     })
 
     it('should handle setting difficulty while expedition active', () => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       useGameStore.getState().startExpedition()
 
       useGameStore.getState().setDifficulty('hard')
@@ -1127,7 +1143,9 @@ describe('gameStore', () => {
     })
 
     it('should handle multiple rapid deployments', () => {
-      useGameStore.getState().generateNewSector({ seed: 'test' })
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
       useGameStore.setState({
         resources: { cycles: 1000, memory: 1000, energy: 1000 },
       })

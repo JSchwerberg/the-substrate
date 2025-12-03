@@ -5,6 +5,7 @@
 
 import {
   Grid,
+  GridPosition,
   getTile,
   isWalkable,
   getManhattanDistance,
@@ -12,7 +13,9 @@ import {
 } from '@core/models/grid'
 import { Process, getEffectiveStat } from '@core/models/process'
 import { Malware, createMalware } from '@core/models/malware'
+import { BehaviorRule } from '@core/models/behavior'
 import { calculateDamage } from '@core/systems/CombatSystem'
+import { processBehavior, type GameState as BehaviorGameState } from '@core/systems/BehaviorSystem'
 
 // ============= Types =============
 
@@ -21,6 +24,12 @@ export interface TickContext {
   malware: Malware[]
   grid: Grid
   combatLog: string[]
+  sector: {
+    exitPoints: GridPosition[]
+    spawnPoints: GridPosition[]
+  }
+  behaviorRules: BehaviorRule[]
+  currentTick: number
 }
 
 export interface TickResult {
@@ -413,18 +422,67 @@ export function checkVictoryDefeat(
   return { result: 'active', log: null }
 }
 
+// ============= Phase 0: Behavior Rules Evaluation =============
+
+export interface BehaviorRulesResult {
+  processes: Process[]
+  logs: string[]
+}
+
+/**
+ * Evaluate behavior rules for all processes
+ * Sets movement targets based on rule actions
+ * Must run BEFORE movement phase so targets are set
+ */
+export function behaviorRulesPhase(context: TickContext): BehaviorRulesResult {
+  const { processes, malware, grid, sector, behaviorRules, currentTick } = context
+  const logs: string[] = []
+
+  // Build GameState for BehaviorSystem (matches BehaviorGameState interface)
+  const behaviorState: BehaviorGameState = {
+    grid,
+    processes: new Map(processes.map(p => [p.id, p])),
+    malware: new Map(malware.map(m => [m.id, m])),
+    sector: {
+      exitPoints: sector.exitPoints,
+      spawnPoints: sector.spawnPoints,
+    },
+  }
+
+  // Evaluate behavior rules for each alive process
+  const updatedProcesses = processes.map(process => {
+    if (process.status === 'destroyed') return process
+
+    // Process behavior rules for this process
+    const triggeredRule = processBehavior(process, behaviorRules, behaviorState, currentTick)
+
+    if (triggeredRule) {
+      logs.push(`${process.name}: ${triggeredRule.name} (${triggeredRule.action.type})`)
+    }
+
+    return process
+  })
+
+  return { processes: updatedProcesses, logs }
+}
+
 // ============= Main Tick Orchestrator =============
 
 export function executeTick(context: TickContext): TickResult {
-  const { processes, malware, grid, combatLog } = context
+  const { malware, grid, combatLog } = context
   const newCombatLog = [...combatLog]
   const addLog = (msg: string) => {
     newCombatLog.push(msg)
     if (newCombatLog.length > 50) newCombatLog.shift()
   }
 
+  // Phase 0: Behavior Rules Evaluation
+  const behaviorResult = behaviorRulesPhase(context)
+  let updatedProcesses = behaviorResult.processes
+  behaviorResult.logs.forEach(addLog)
+
   // Phase 1: Process Movement
-  let updatedProcesses = processMovementPhase(processes, grid)
+  updatedProcesses = processMovementPhase(updatedProcesses, grid)
 
   // Phase 1.5: Cache Collection
   const cacheResult = cacheCollectionPhase(updatedProcesses, grid)

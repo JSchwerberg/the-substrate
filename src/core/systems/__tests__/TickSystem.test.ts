@@ -26,6 +26,12 @@ function createTestContext(overrides?: Partial<TickContext>): TickContext {
     malware: [],
     grid: createTestGrid(),
     combatLog: [],
+    sector: {
+      exitPoints: [{ x: 9, y: 9 }],
+      spawnPoints: [{ x: 0, y: 0 }],
+    },
+    behaviorRules: [],
+    currentTick: 0,
     ...overrides,
   }
 }

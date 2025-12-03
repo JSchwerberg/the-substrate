@@ -80,12 +80,12 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 
 ### Critical Issues (P0)
 
-| Issue | Location | Impact |
+| Issue | Location | Status |
 |-------|----------|--------|
-| Minimal test coverage (~2.5%) | Only `SaveManager.test.ts` exists | High regression risk |
+| Minimal test coverage (~2.5%) | Only `SaveManager.test.ts` exists | ✅ Fixed: 376 tests, ~53% coverage |
 | Worm replication TODO incomplete | `MalwareAI.ts:350` | Core mechanic non-functional |
-| Unused Expedition model (246 lines) | `src/core/models/expedition.ts` | Architectural confusion |
-| BehaviorSystem not integrated | `BehaviorSystem.ts` | Feature exists but unused in game loop |
+| Unused Expedition model (246 lines) | `src/core/models/expedition.ts` | ✅ Fixed: Deleted, refactored systems |
+| BehaviorSystem not integrated | `BehaviorSystem.ts` | ✅ Fixed: Wired into tick loop |
 
 ### High Priority (P1)
 
@@ -143,9 +143,9 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - [x] MalwareAI tests - 75 tests
 - **Total: 376 tests (339 new)**
 
-**Week 5-6: Architecture Cleanup**
-- [ ] Remove/integrate Expedition model (4h)
-- [ ] Integrate or remove BehaviorSystem (4h)
+**Week 5-6: Architecture Cleanup** (In Progress)
+- [x] Remove Expedition model - deleted 246 lines, refactored 4 systems to use GameState interface
+- [x] Integrate BehaviorSystem - wired into tick loop, rules now execute each tick
 - [ ] Split gameStore into domain stores (8h)
 - [ ] Add README.md and developer docs (8h)
 

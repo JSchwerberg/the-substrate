@@ -12,28 +12,69 @@ import {
   sortRulesByPriority,
   canTriggerRule,
 } from '../models/behavior'
-import {
-  Expedition,
-  getAliveProcesses,
-  getAliveMalware,
-  getMalwareInRange,
-  getProcessesInRange,
-  logEvent,
-} from '../models/expedition'
-import { setMovementTarget } from './MovementSystem'
+import { setMovementTarget, type GameState as MovementGameState } from './MovementSystem'
+
+// ============= Game State Interface =============
+
+/**
+ * Game state interface for behavior evaluation
+ * Extends movement's GameState with sector information
+ */
+export interface GameState extends MovementGameState {
+  sector: {
+    exitPoints: GridPosition[]
+    spawnPoints: GridPosition[]
+  }
+}
+
+/**
+ * Get alive processes from game state
+ */
+function getAliveProcesses(state: GameState): Process[] {
+  return Array.from(state.processes.values()).filter(p => p.status !== 'destroyed')
+}
+
+/**
+ * Get alive malware from game state
+ */
+function getAliveMalware(state: GameState): Malware[] {
+  return Array.from(state.malware.values()).filter(m => m.status !== 'destroyed')
+}
+
+/**
+ * Get processes within range of a position
+ */
+function getProcessesInRange(state: GameState, position: GridPosition, range: number): Process[] {
+  return getAliveProcesses(state).filter(p => {
+    const dx = Math.abs(p.position.x - position.x)
+    const dy = Math.abs(p.position.y - position.y)
+    return dx + dy <= range
+  })
+}
+
+/**
+ * Get malware within range of a position
+ */
+function getMalwareInRange(state: GameState, position: GridPosition, range: number): Malware[] {
+  return getAliveMalware(state).filter(m => {
+    const dx = Math.abs(m.position.x - position.x)
+    const dy = Math.abs(m.position.y - position.y)
+    return dx + dy <= range
+  })
+}
 
 // ============= Context for Evaluation =============
 
 export interface BehaviorContext {
   process: Process
-  expedition: Expedition
+  state: GameState
   currentTick: number
 }
 
 // ============= Condition Evaluation =============
 
 export function evaluateCondition(condition: Condition, context: BehaviorContext): boolean {
-  const { process, expedition } = context
+  const { process, state } = context
 
   switch (condition.type) {
     case 'always':
@@ -47,23 +88,23 @@ export function evaluateCondition(condition: Condition, context: BehaviorContext
 
     case 'enemy_in_range': {
       const range = condition.range ?? 3
-      const enemies = getMalwareInRange(expedition, process.position, range)
+      const enemies = getMalwareInRange(state, process.position, range)
       return enemies.length > 0
     }
 
     case 'enemy_adjacent': {
-      const adjacent = getMalwareInRange(expedition, process.position, 1)
+      const adjacent = getMalwareInRange(state, process.position, 1)
       return adjacent.length > 0
     }
 
     case 'no_enemy_visible': {
-      const visible = getMalwareInRange(expedition, process.position, process.stats.sightRange)
+      const visible = getMalwareInRange(state, process.position, process.stats.sightRange)
       return visible.length === 0
     }
 
     case 'ally_in_range': {
       const range = condition.range ?? 3
-      const allies = getProcessesInRange(expedition, process.position, range).filter(
+      const allies = getProcessesInRange(state, process.position, range).filter(
         p => p.id !== process.id
       )
       return allies.length > 0
@@ -71,7 +112,7 @@ export function evaluateCondition(condition: Condition, context: BehaviorContext
 
     case 'ally_health_below': {
       const threshold = condition.value ?? 50
-      const allies = getAliveProcesses(expedition).filter(p => p.id !== process.id)
+      const allies = getAliveProcesses(state).filter(p => p.id !== process.id)
       return allies.some(a => getHealthPercent(a) < threshold)
     }
 
@@ -80,7 +121,7 @@ export function evaluateCondition(condition: Condition, context: BehaviorContext
 
     case 'near_exit': {
       const range = condition.range ?? 2
-      return expedition.sector.exitPoints.some(
+      return state.sector.exitPoints.some(
         exit => getManhattanDistance(process.position, exit) <= range
       )
     }
@@ -92,7 +133,7 @@ export function evaluateCondition(condition: Condition, context: BehaviorContext
         for (let dx = -range; dx <= range; dx++) {
           if (Math.abs(dx) + Math.abs(dy) > range) continue
           const pos = { x: process.position.x + dx, y: process.position.y + dy }
-          const tile = getTile(expedition.sector.grid, pos)
+          const tile = getTile(state.grid, pos)
           if (tile?.type === 'data_cache') return true
         }
       }
@@ -123,41 +164,41 @@ export interface ActionResult {
 }
 
 export function executeAction(action: Action, context: BehaviorContext): ActionResult {
-  const { process, expedition } = context
+  const { process, state } = context
 
   switch (action.type) {
     case 'attack_nearest':
-      return attackNearest(process, expedition, 'nearest')
+      return attackNearest(process, state, 'nearest')
 
     case 'attack_weakest':
-      return attackNearest(process, expedition, 'weakest')
+      return attackNearest(process, state, 'weakest')
 
     case 'attack_strongest':
-      return attackNearest(process, expedition, 'strongest')
+      return attackNearest(process, state, 'strongest')
 
     case 'move_to_nearest_enemy':
-      return moveToNearestEnemy(process, expedition)
+      return moveToNearestEnemy(process, state)
 
     case 'move_to_nearest_cache':
-      return moveToNearestCache(process, expedition)
+      return moveToNearestCache(process, state)
 
     case 'move_to_exit':
-      return moveToExit(process, expedition)
+      return moveToExit(process, state)
 
     case 'retreat_to_spawn':
-      return retreatToSpawn(process, expedition)
+      return retreatToSpawn(process, state)
 
     case 'flee_from_enemy':
-      return fleeFromEnemy(process, expedition)
+      return fleeFromEnemy(process, state)
 
     case 'follow_ally':
-      return followAlly(process, expedition)
+      return followAlly(process, state)
 
     case 'hold_position':
       return { success: true, message: 'Holding position' }
 
     case 'explore':
-      return explore(process, expedition)
+      return explore(process, state)
 
     case 'heal_ally':
       return { success: false, message: 'Heal not implemented' }
@@ -171,10 +212,10 @@ export function executeAction(action: Action, context: BehaviorContext): ActionR
 
 function attackNearest(
   process: Process,
-  expedition: Expedition,
+  state: GameState,
   targetSelection: 'nearest' | 'weakest' | 'strongest'
 ): ActionResult {
-  const adjacent = getMalwareInRange(expedition, process.position, 1)
+  const adjacent = getMalwareInRange(state, process.position, 1)
   if (adjacent.length === 0) {
     return { success: false, message: 'No adjacent enemies' }
   }
@@ -203,8 +244,8 @@ function attackNearest(
   }
 }
 
-function moveToNearestEnemy(process: Process, expedition: Expedition): ActionResult {
-  const enemies = getAliveMalware(expedition)
+function moveToNearestEnemy(process: Process, state: GameState): ActionResult {
+  const enemies = getAliveMalware(state)
   if (enemies.length === 0) {
     return { success: false, message: 'No enemies found' }
   }
@@ -222,7 +263,7 @@ function moveToNearestEnemy(process: Process, expedition: Expedition): ActionRes
   }
 
   // Move toward enemy (stop 1 tile away to attack)
-  const success = setMovementTarget(process, nearest.position, expedition.sector.grid)
+  const success = setMovementTarget(process, nearest.position, state.grid)
 
   return {
     success,
@@ -231,8 +272,8 @@ function moveToNearestEnemy(process: Process, expedition: Expedition): ActionRes
   }
 }
 
-function moveToNearestCache(process: Process, expedition: Expedition): ActionResult {
-  const grid = expedition.sector.grid
+function moveToNearestCache(process: Process, state: GameState): ActionResult {
+  const grid = state.grid
   let nearestCache: GridPosition | null = null
   let nearestDist = Infinity
 
@@ -253,7 +294,7 @@ function moveToNearestCache(process: Process, expedition: Expedition): ActionRes
     return { success: false, message: 'No caches found' }
   }
 
-  const success = setMovementTarget(process, nearestCache, expedition.sector.grid)
+  const success = setMovementTarget(process, nearestCache, state.grid)
 
   return {
     success,
@@ -262,8 +303,8 @@ function moveToNearestCache(process: Process, expedition: Expedition): ActionRes
   }
 }
 
-function moveToExit(process: Process, expedition: Expedition): ActionResult {
-  const exits = expedition.sector.exitPoints
+function moveToExit(process: Process, state: GameState): ActionResult {
+  const exits = state.sector.exitPoints
   if (exits.length === 0) {
     return { success: false, message: 'No exit found' }
   }
@@ -280,7 +321,7 @@ function moveToExit(process: Process, expedition: Expedition): ActionResult {
     }
   }
 
-  const success = setMovementTarget(process, nearest, expedition.sector.grid)
+  const success = setMovementTarget(process, nearest, state.grid)
 
   return {
     success,
@@ -289,8 +330,8 @@ function moveToExit(process: Process, expedition: Expedition): ActionResult {
   }
 }
 
-function retreatToSpawn(process: Process, expedition: Expedition): ActionResult {
-  const spawns = expedition.sector.spawnPoints
+function retreatToSpawn(process: Process, state: GameState): ActionResult {
+  const spawns = state.sector.spawnPoints
   if (spawns.length === 0) {
     return { success: false, message: 'No spawn found' }
   }
@@ -308,7 +349,7 @@ function retreatToSpawn(process: Process, expedition: Expedition): ActionResult 
   }
 
   process.status = 'retreating'
-  const success = setMovementTarget(process, nearest, expedition.sector.grid)
+  const success = setMovementTarget(process, nearest, state.grid)
 
   return {
     success,
@@ -317,8 +358,8 @@ function retreatToSpawn(process: Process, expedition: Expedition): ActionResult 
   }
 }
 
-function fleeFromEnemy(process: Process, expedition: Expedition): ActionResult {
-  const enemies = getMalwareInRange(expedition, process.position, process.stats.sightRange)
+function fleeFromEnemy(process: Process, state: GameState): ActionResult {
+  const enemies = getMalwareInRange(state, process.position, process.stats.sightRange)
   if (enemies.length === 0) {
     return { success: false, message: 'No enemies to flee from' }
   }
@@ -344,11 +385,11 @@ function fleeFromEnemy(process: Process, expedition: Expedition): ActionResult {
   }
 
   // Clamp to grid bounds
-  fleeTarget.x = Math.max(0, Math.min(expedition.sector.grid.width - 1, fleeTarget.x))
-  fleeTarget.y = Math.max(0, Math.min(expedition.sector.grid.height - 1, fleeTarget.y))
+  fleeTarget.x = Math.max(0, Math.min(state.grid.width - 1, fleeTarget.x))
+  fleeTarget.y = Math.max(0, Math.min(state.grid.height - 1, fleeTarget.y))
 
   process.status = 'retreating'
-  const success = setMovementTarget(process, fleeTarget, expedition.sector.grid)
+  const success = setMovementTarget(process, fleeTarget, state.grid)
 
   return {
     success,
@@ -357,8 +398,8 @@ function fleeFromEnemy(process: Process, expedition: Expedition): ActionResult {
   }
 }
 
-function followAlly(process: Process, expedition: Expedition): ActionResult {
-  const allies = getAliveProcesses(expedition).filter(p => p.id !== process.id)
+function followAlly(process: Process, state: GameState): ActionResult {
+  const allies = getAliveProcesses(state).filter(p => p.id !== process.id)
   if (allies.length === 0) {
     return { success: false, message: 'No allies to follow' }
   }
@@ -380,7 +421,7 @@ function followAlly(process: Process, expedition: Expedition): ActionResult {
     return { success: true, message: 'Already near ally' }
   }
 
-  const success = setMovementTarget(process, nearest.position, expedition.sector.grid)
+  const success = setMovementTarget(process, nearest.position, state.grid)
 
   return {
     success,
@@ -389,8 +430,8 @@ function followAlly(process: Process, expedition: Expedition): ActionResult {
   }
 }
 
-function explore(process: Process, expedition: Expedition): ActionResult {
-  const grid = expedition.sector.grid
+function explore(process: Process, state: GameState): ActionResult {
+  const grid = state.grid
 
   // Find nearest unrevealed tile
   let nearestHidden: GridPosition | null = null
@@ -411,10 +452,10 @@ function explore(process: Process, expedition: Expedition): ActionResult {
 
   if (!nearestHidden) {
     // All explored, move toward exit
-    return moveToExit(process, expedition)
+    return moveToExit(process, state)
   }
 
-  const success = setMovementTarget(process, nearestHidden, expedition.sector.grid)
+  const success = setMovementTarget(process, nearestHidden, state.grid)
 
   return {
     success,
@@ -428,13 +469,13 @@ function explore(process: Process, expedition: Expedition): ActionResult {
 export function processBehavior(
   process: Process,
   rules: BehaviorRule[],
-  expedition: Expedition,
+  state: GameState,
   currentTick: number
 ): BehaviorRule | null {
   if (!canAct(process)) return null
 
   const sortedRules = sortRulesByPriority(rules)
-  const context: BehaviorContext = { process, expedition, currentTick }
+  const context: BehaviorContext = { process, state, currentTick }
 
   for (const rule of sortedRules) {
     if (!canTriggerRule(rule, currentTick)) continue
@@ -444,18 +485,6 @@ export function processBehavior(
 
       if (result.success) {
         rule.lastTriggered = currentTick
-
-        if (result.targetPosition) {
-          logEvent(expedition, 'tick_completed', `${process.name}: ${rule.name}`, {
-            actorId: process.id,
-            position: result.targetPosition,
-          })
-        } else {
-          logEvent(expedition, 'tick_completed', `${process.name}: ${rule.name}`, {
-            actorId: process.id,
-          })
-        }
-
         return rule
       }
     }

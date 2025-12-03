@@ -404,6 +404,8 @@ export const useGameStore = create<GameState>()(
         expeditionResult,
         combatLog,
         expeditionScore,
+        behaviorRules,
+        currentTick,
       } = get()
       // Block tick on defeat, but allow continuation after victory for cache collection
       if (!currentSector || isPaused || !expeditionActive || expeditionResult === 'defeat') return
@@ -414,6 +416,12 @@ export const useGameStore = create<GameState>()(
         malware,
         grid: currentSector.grid,
         combatLog,
+        sector: {
+          exitPoints: currentSector.exitPoints,
+          spawnPoints: currentSector.spawnPoints,
+        },
+        behaviorRules,
+        currentTick,
       })
 
       // Award resources for collected caches

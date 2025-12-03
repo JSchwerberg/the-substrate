@@ -181,8 +181,8 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - [x] ~~No intervention system during expeditions~~ → Fixed: Retreat (50E) + Scan (30E)
 
 ### Medium Priority (P2)
-- [ ] Units cannot move after victory (tick loop stops)
-- [ ] No pathfinding cache (performance)
+- [x] ~~Units cannot move after victory (tick loop stops)~~ → Fixed: tick allows victory continuation
+- [x] ~~No pathfinding cache (performance)~~ → Deferred: low impact (grid/targets change frequently)
 - [x] ~~No error boundaries in React components~~ → Fixed: ErrorBoundary wraps App + GameCanvas
 - [x] ~~551-line gameStore still large~~ → Fixed: 333 lines + 7 slices
 

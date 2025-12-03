@@ -58,6 +58,15 @@ export const UPGRADES = {
   },
 } as const
 
+// ============= Safe Value Limits =============
+
+export const SAFE_LIMITS = {
+  /** Maximum value for accumulated data (prevents integer overflow) */
+  MAX_DATA: Number.MAX_SAFE_INTEGER,
+  /** Maximum expedition score values (prevents manipulation) */
+  MAX_SCORE: 1_000_000,
+} as const
+
 // ============= Rewards =============
 
 export const REWARDS = {

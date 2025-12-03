@@ -5,13 +5,16 @@
 import { useGameStore } from '@game/state/gameStore'
 import type { Difficulty } from '@game/state/gameStore'
 
-const DIFFICULTY_CONFIG: Record<Difficulty, {
-  name: string
-  color: string
-  malwareMultiplier: number
-  rewardMultiplier: number
-  description: string
-}> = {
+const DIFFICULTY_CONFIG: Record<
+  Difficulty,
+  {
+    name: string
+    color: string
+    malwareMultiplier: number
+    rewardMultiplier: number
+    description: string
+  }
+> = {
   easy: {
     name: 'EASY',
     color: '#4ade80',
@@ -73,7 +76,7 @@ export function DifficultySelector() {
           gap: '8px',
         }}
       >
-        {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((difficulty) => {
+        {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map(difficulty => {
           const config = DIFFICULTY_CONFIG[difficulty]
           const isSelected = selectedDifficulty === difficulty
 
@@ -92,13 +95,13 @@ export function DifficultySelector() {
                 position: 'relative',
                 overflow: 'hidden',
               }}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 if (!isSelected) {
                   e.currentTarget.style.backgroundColor = '#16213e'
                   e.currentTarget.style.borderColor = `${config.color}80`
                 }
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 if (!isSelected) {
                   e.currentTarget.style.backgroundColor = '#0f0f1a'
                   e.currentTarget.style.borderColor = '#333'
@@ -180,7 +183,12 @@ export function DifficultySelector() {
                   <span style={{ color: '#888' }}>Rewards: </span>
                   <span
                     style={{
-                      color: config.rewardMultiplier > 1 ? '#4ade80' : config.rewardMultiplier < 1 ? '#fbbf24' : '#7ecbff',
+                      color:
+                        config.rewardMultiplier > 1
+                          ? '#4ade80'
+                          : config.rewardMultiplier < 1
+                            ? '#fbbf24'
+                            : '#7ecbff',
                       fontWeight: 600,
                     }}
                   >

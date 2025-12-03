@@ -16,21 +16,21 @@ export type TileType =
   | 'exit_point'
 
 export type VisibilityState =
-  | 'hidden'    // Never seen (fog of war)
-  | 'revealed'  // Previously seen, currently not visible
-  | 'visible'   // Currently visible by a process
+  | 'hidden' // Never seen (fog of war)
+  | 'revealed' // Previously seen, currently not visible
+  | 'visible' // Currently visible by a process
 
 export interface Tile {
   type: TileType
   visibility: VisibilityState
-  corruptionLevel: number  // 0-100
-  entityIds: string[]      // IDs of entities on this tile
+  corruptionLevel: number // 0-100
+  entityIds: string[] // IDs of entities on this tile
 }
 
 export interface Grid {
   width: number
   height: number
-  tiles: Tile[][]  // [y][x] for row-major access
+  tiles: Tile[][] // [y][x] for row-major access
 }
 
 export type SectorSize = 'small' | 'medium' | 'large'
@@ -49,8 +49,8 @@ export interface SectorConfig {
   size: SectorSize
   difficulty: SectorDifficulty
   seed: number
-  corruptionDensity: number  // 0-1
-  malwareDensity: number     // 0-1
+  corruptionDensity: number // 0-1
+  malwareDensity: number // 0-1
   cacheCount: number
 }
 
@@ -59,7 +59,7 @@ export interface Sector {
   grid: Grid
   spawnPoints: GridPosition[]
   exitPoints: GridPosition[]
-  explored: number  // 0-100 percentage
+  explored: number // 0-100 percentage
   status: 'active' | 'success' | 'failed' | 'retreated'
 }
 
@@ -102,7 +102,11 @@ export function setTileType(grid: Grid, pos: GridPosition, type: TileType): void
   }
 }
 
-export function setTileVisibility(grid: Grid, pos: GridPosition, visibility: VisibilityState): void {
+export function setTileVisibility(
+  grid: Grid,
+  pos: GridPosition,
+  visibility: VisibilityState
+): void {
   const tile = getTile(grid, pos)
   if (tile) {
     tile.visibility = visibility
@@ -111,10 +115,10 @@ export function setTileVisibility(grid: Grid, pos: GridPosition, visibility: Vis
 
 export function getAdjacentPositions(pos: GridPosition): GridPosition[] {
   return [
-    { x: pos.x - 1, y: pos.y },     // left
-    { x: pos.x + 1, y: pos.y },     // right
-    { x: pos.x, y: pos.y - 1 },     // up
-    { x: pos.x, y: pos.y + 1 },     // down
+    { x: pos.x - 1, y: pos.y }, // left
+    { x: pos.x + 1, y: pos.y }, // right
+    { x: pos.x, y: pos.y - 1 }, // up
+    { x: pos.x, y: pos.y + 1 }, // down
   ]
 }
 

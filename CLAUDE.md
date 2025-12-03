@@ -57,3 +57,4 @@ The tick-based game loop runs in `gameStore.ts` at 500ms intervals:
 - **Malware** (enemies): Worm (mobile), Trojan (dormant ambusher), Rootkit (stationary, corrupts), Logic Bomb (explodes)
 - Prefer using specialized subagents, including: the debugger agent when fixing bugs; the javascript-typescript and frontend-mobile-development agents; or any others that you feel are appropriate for the job.
 - Use appropriate specialized subagents: frontend-mobile-development, javascript-typescript, error-diagnostics.
+- Use prettier to ensure that all committed changes meet style guidelines

@@ -1,4 +1,13 @@
-import type { PersistentData, Upgrades, Difficulty, GameState, Resources, ResourceCapacity, ExpeditionScore, ExpeditionResult } from '@game/state/gameStore'
+import type {
+  PersistentData,
+  Upgrades,
+  Difficulty,
+  GameState,
+  Resources,
+  ResourceCapacity,
+  ExpeditionScore,
+  ExpeditionResult,
+} from '@game/state/gameStore'
 import type { BehaviorRule } from '@core/models/behavior'
 
 export function createMockPersistentData(overrides?: Partial<PersistentData>): PersistentData {
@@ -120,7 +129,13 @@ export function createMockGameState(overrides?: Partial<GameState>): GameState {
     addResources: () => {},
     purchaseUpgrade: () => false,
     getUpgradeCost: () => 0,
-    claimExpeditionRewards: () => ({ cacheReward: 0, malwareReward: 0, victoryBonus: 0, survivalBonus: 0, totalReward: 0 }),
+    claimExpeditionRewards: () => ({
+      cacheReward: 0,
+      malwareReward: 0,
+      victoryBonus: 0,
+      survivalBonus: 0,
+      totalReward: 0,
+    }),
     setDifficulty: () => {},
     setBehaviorRules: () => {},
     loadRuleTemplate: () => {},

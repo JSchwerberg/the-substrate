@@ -24,8 +24,8 @@ export type ConditionType =
 
 export interface Condition {
   type: ConditionType
-  value?: number  // For threshold conditions like health_below
-  range?: number  // For range-based conditions
+  value?: number // For threshold conditions like health_below
+  range?: number // For range-based conditions
 }
 
 // ============= Actions =============
@@ -46,7 +46,7 @@ export type ActionType =
 
 export interface Action {
   type: ActionType
-  targetId?: string      // For specific target actions
+  targetId?: string // For specific target actions
   position?: GridPosition // For position-based actions
 }
 
@@ -55,11 +55,11 @@ export interface Action {
 export interface BehaviorRule {
   id: string
   name: string
-  priority: number       // Lower = higher priority
+  priority: number // Lower = higher priority
   condition: Condition
   action: Action
   enabled: boolean
-  cooldown?: number      // Ticks before this rule can trigger again
+  cooldown?: number // Ticks before this rule can trigger again
   lastTriggered?: number // Tick when last triggered
 }
 

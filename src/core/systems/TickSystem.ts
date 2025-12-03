@@ -3,7 +3,13 @@
  * Extracted from gameStore to separate business logic from state management
  */
 
-import { Grid, getTile, isWalkable, getManhattanDistance, getAdjacentPositions } from '@core/models/grid'
+import {
+  Grid,
+  getTile,
+  isWalkable,
+  getManhattanDistance,
+  getAdjacentPositions,
+} from '@core/models/grid'
 import { Process, getEffectiveStat } from '@core/models/process'
 import { Malware, createMalware } from '@core/models/malware'
 import { calculateDamage } from '@core/systems/CombatSystem'
@@ -32,9 +38,7 @@ function cloneGrid(grid: Grid): Grid {
   return {
     width: grid.width,
     height: grid.height,
-    tiles: grid.tiles.map(row =>
-      row.map(tile => ({ ...tile, entityIds: [...tile.entityIds] }))
-    ),
+    tiles: grid.tiles.map(row => row.map(tile => ({ ...tile, entityIds: [...tile.entityIds] }))),
   }
 }
 
@@ -46,7 +50,7 @@ export function processMovementPhase(processes: Process[], grid: Grid): Process[
     const withTickedEffects = {
       ...process,
       statusEffects: process.statusEffects
-        .map(e => e.duration === -1 ? e : { ...e, duration: e.duration - 1 })
+        .map(e => (e.duration === -1 ? e : { ...e, duration: e.duration - 1 }))
         .filter(e => e.duration === -1 || e.duration > 0),
     }
 
@@ -82,9 +86,7 @@ export function processMovementPhase(processes: Process[], grid: Grid): Process[
     if (!tile || !isWalkable(tile)) return withResetAP
 
     const collision = processes.some(
-      p => p.id !== withResetAP.id &&
-           p.position.x === nextPos.x &&
-           p.position.y === nextPos.y
+      p => p.id !== withResetAP.id && p.position.x === nextPos.x && p.position.y === nextPos.y
     )
     if (collision) return withResetAP
 
@@ -96,7 +98,7 @@ export function processMovementPhase(processes: Process[], grid: Grid): Process[
       pathIndex: nextIndex,
       path: reachedEnd ? [] : withResetAP.path,
       targetPosition: reachedEnd ? null : withResetAP.targetPosition,
-      status: reachedEnd ? 'idle' as const : 'moving' as const,
+      status: reachedEnd ? ('idle' as const) : ('moving' as const),
     }
   })
 }
@@ -146,9 +148,8 @@ export function processCombatPhase(processes: Process[], malware: Malware[]): Pr
     if (process.status === 'destroyed') return process
 
     // Find adjacent malware
-    const adjacentMalware = updatedMalware.filter(m =>
-      m.status !== 'destroyed' &&
-      getManhattanDistance(process.position, m.position) <= 1
+    const adjacentMalware = updatedMalware.filter(
+      m => m.status !== 'destroyed' && getManhattanDistance(process.position, m.position) <= 1
     )
 
     if (adjacentMalware.length === 0) return process
@@ -164,11 +165,13 @@ export function processCombatPhase(processes: Process[], malware: Malware[]): Pr
       const newHealth = Math.max(0, m.stats.health - damage)
       const destroyed = newHealth <= 0
       if (destroyed) malwareDestroyed++
-      logs.push(`${process.name} deals ${damage} damage to ${m.name}${destroyed ? ' (destroyed!)' : ''}`)
+      logs.push(
+        `${process.name} deals ${damage} damage to ${m.name}${destroyed ? ' (destroyed!)' : ''}`
+      )
       return {
         ...m,
         stats: { ...m.stats, health: newHealth },
-        status: destroyed ? 'destroyed' as const : m.status,
+        status: destroyed ? ('destroyed' as const) : m.status,
         isRevealed: true,
       }
     })
@@ -187,7 +190,11 @@ export interface MalwareAIResult {
   logs: string[]
 }
 
-export function malwareAIPhase(processes: Process[], malware: Malware[], grid: Grid): MalwareAIResult {
+export function malwareAIPhase(
+  processes: Process[],
+  malware: Malware[],
+  grid: Grid
+): MalwareAIResult {
   let updatedProcesses = [...processes]
   const logs: string[] = []
 
@@ -201,9 +208,8 @@ export function malwareAIPhase(processes: Process[], malware: Malware[], grid: G
     }
 
     // Check for adjacent processes to attack
-    const adjacentProcesses = updatedProcesses.filter(p =>
-      p.status !== 'destroyed' &&
-      getManhattanDistance(withCooldown.position, p.position) <= 1
+    const adjacentProcesses = updatedProcesses.filter(
+      p => p.status !== 'destroyed' && getManhattanDistance(withCooldown.position, p.position) <= 1
     )
 
     if (adjacentProcesses.length > 0) {
@@ -216,11 +222,13 @@ export function malwareAIPhase(processes: Process[], malware: Malware[], grid: G
         if (p.id !== target.id) return p
         const newHealth = Math.max(0, p.stats.health - damage)
         const destroyed = newHealth <= 0
-        logs.push(`${withCooldown.name} deals ${damage} damage to ${p.name}${destroyed ? ' (destroyed!)' : ''}`)
+        logs.push(
+          `${withCooldown.name} deals ${damage} damage to ${p.name}${destroyed ? ' (destroyed!)' : ''}`
+        )
         return {
           ...p,
           stats: { ...p.stats, health: newHealth },
-          status: destroyed ? 'destroyed' as const : p.status,
+          status: destroyed ? ('destroyed' as const) : p.status,
         }
       })
 
@@ -228,9 +236,10 @@ export function malwareAIPhase(processes: Process[], malware: Malware[], grid: G
     }
 
     // Check if should become alerted (process in aggro range)
-    const inAggroRange = updatedProcesses.filter(p =>
-      p.status !== 'destroyed' &&
-      getManhattanDistance(withCooldown.position, p.position) <= withCooldown.behavior.aggroRange
+    const inAggroRange = updatedProcesses.filter(
+      p =>
+        p.status !== 'destroyed' &&
+        getManhattanDistance(withCooldown.position, p.position) <= withCooldown.behavior.aggroRange
     )
 
     if (inAggroRange.length > 0 && withCooldown.status !== 'alerted') {
@@ -238,10 +247,16 @@ export function malwareAIPhase(processes: Process[], malware: Malware[], grid: G
     }
 
     // Mobile malware: move toward nearest process if alerted
-    if (withCooldown.status === 'alerted' && withCooldown.stats.speed > 0 && inAggroRange.length > 0) {
+    if (
+      withCooldown.status === 'alerted' &&
+      withCooldown.stats.speed > 0 &&
+      inAggroRange.length > 0
+    ) {
       const nearest = inAggroRange.reduce((a, b) =>
         getManhattanDistance(withCooldown.position, a.position) <
-        getManhattanDistance(withCooldown.position, b.position) ? a : b
+        getManhattanDistance(withCooldown.position, b.position)
+          ? a
+          : b
       )
 
       // Simple movement: move one step toward target
@@ -249,21 +264,25 @@ export function malwareAIPhase(processes: Process[], malware: Malware[], grid: G
       const dy = Math.sign(nearest.position.y - withCooldown.position.y)
 
       // Try horizontal first, then vertical
-      const candidates = dx !== 0
-        ? [{ x: withCooldown.position.x + dx, y: withCooldown.position.y },
-           { x: withCooldown.position.x, y: withCooldown.position.y + dy }]
-        : [{ x: withCooldown.position.x, y: withCooldown.position.y + dy }]
+      const candidates =
+        dx !== 0
+          ? [
+              { x: withCooldown.position.x + dx, y: withCooldown.position.y },
+              { x: withCooldown.position.x, y: withCooldown.position.y + dy },
+            ]
+          : [{ x: withCooldown.position.x, y: withCooldown.position.y + dy }]
 
       for (const newPos of candidates) {
         const tile = getTile(grid, newPos)
         if (!tile || !isWalkable(tile)) continue
 
         // Check collision with other malware
-        const malwareCollision = malware.some(other =>
-          other.id !== withCooldown.id &&
-          other.status !== 'destroyed' &&
-          other.position.x === newPos.x &&
-          other.position.y === newPos.y
+        const malwareCollision = malware.some(
+          other =>
+            other.id !== withCooldown.id &&
+            other.status !== 'destroyed' &&
+            other.position.x === newPos.x &&
+            other.position.y === newPos.y
         )
         if (malwareCollision) continue
 
@@ -294,7 +313,12 @@ export function wormReplicationPhase(
   const updatedMalware = [...malware]
 
   for (const m of updatedMalware) {
-    if (m.type === 'worm' && m.status !== 'destroyed' && m.status !== 'dormant' && m.abilityCooldown === 0) {
+    if (
+      m.type === 'worm' &&
+      m.status !== 'destroyed' &&
+      m.status !== 'dormant' &&
+      m.abilityCooldown === 0
+    ) {
       // Try to find an adjacent empty tile to replicate
       const adjacentPositions = getAdjacentPositions(m.position)
       const validPositions = adjacentPositions.filter(pos => {
@@ -302,22 +326,19 @@ export function wormReplicationPhase(
         if (!tile || !isWalkable(tile)) return false
 
         // Check if occupied by process
-        const hasProcess = processes.some(p =>
-          p.status !== 'destroyed' &&
-          p.position.x === pos.x &&
-          p.position.y === pos.y
+        const hasProcess = processes.some(
+          p => p.status !== 'destroyed' && p.position.x === pos.x && p.position.y === pos.y
         )
         if (hasProcess) return false
 
         // Check if occupied by malware (including newly created worms)
-        const hasMalware = updatedMalware.some(other =>
-          other.status !== 'destroyed' &&
-          other.position.x === pos.x &&
-          other.position.y === pos.y
-        ) || newWorms.some(other =>
-          other.position.x === pos.x &&
-          other.position.y === pos.y
-        )
+        const hasMalware =
+          updatedMalware.some(
+            other =>
+              other.status !== 'destroyed' &&
+              other.position.x === pos.x &&
+              other.position.y === pos.y
+          ) || newWorms.some(other => other.position.x === pos.x && other.position.y === pos.y)
         if (hasMalware) return false
 
         return true
@@ -348,15 +369,17 @@ export interface DormantActivationResult {
   logs: string[]
 }
 
-export function dormantActivationPhase(processes: Process[], malware: Malware[]): DormantActivationResult {
+export function dormantActivationPhase(
+  processes: Process[],
+  malware: Malware[]
+): DormantActivationResult {
   const logs: string[] = []
 
   const updatedMalware = malware.map(m => {
     if (m.status !== 'dormant') return m
 
-    const nearbyProcess = processes.some(p =>
-      p.status !== 'destroyed' &&
-      getManhattanDistance(m.position, p.position) <= 1
+    const nearbyProcess = processes.some(
+      p => p.status !== 'destroyed' && getManhattanDistance(m.position, p.position) <= 1
     )
 
     if (nearbyProcess) {
@@ -374,7 +397,10 @@ export function dormantActivationPhase(processes: Process[], malware: Malware[])
 
 export type ExpeditionResult = 'active' | 'victory' | 'defeat'
 
-export function checkVictoryDefeat(processes: Process[], malware: Malware[]): { result: ExpeditionResult; log: string | null } {
+export function checkVictoryDefeat(
+  processes: Process[],
+  malware: Malware[]
+): { result: ExpeditionResult; log: string | null } {
   const aliveProcesses = processes.filter(p => p.status !== 'destroyed')
   const aliveMalware = malware.filter(m => m.status !== 'destroyed')
 

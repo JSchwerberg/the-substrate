@@ -15,9 +15,9 @@ import {
 
 interface PathNode {
   position: GridPosition
-  g: number  // Cost from start to this node
-  h: number  // Heuristic (estimated cost to goal)
-  f: number  // g + h
+  g: number // Cost from start to this node
+  h: number // Heuristic (estimated cost to goal)
+  f: number // g + h
   parent: PathNode | null
 }
 
@@ -78,10 +78,7 @@ export function findPath(
     if (!currentNode) break
 
     // Check if we've reached the goal
-    if (
-      currentNode.position.x === end.x &&
-      currentNode.position.y === end.y
-    ) {
+    if (currentNode.position.x === end.x && currentNode.position.y === end.y) {
       return reconstructPath(currentNode)
     }
 
@@ -150,11 +147,7 @@ function reconstructPath(endNode: PathNode): GridPosition[] {
 /**
  * Find the next step toward a target (for one-step-at-a-time movement)
  */
-export function getNextStep(
-  grid: Grid,
-  from: GridPosition,
-  to: GridPosition
-): GridPosition | null {
+export function getNextStep(grid: Grid, from: GridPosition, to: GridPosition): GridPosition | null {
   const path = findPath(grid, from, to)
   if (!path || path.length < 2) return null
   return path[1] ?? null
@@ -202,11 +195,7 @@ export function getReachablePositions(
  * Check if there's a clear line of sight between two positions
  * Uses Bresenham's line algorithm
  */
-export function hasLineOfSight(
-  grid: Grid,
-  from: GridPosition,
-  to: GridPosition
-): boolean {
+export function hasLineOfSight(grid: Grid, from: GridPosition, to: GridPosition): boolean {
   const dx = Math.abs(to.x - from.x)
   const dy = Math.abs(to.y - from.y)
   const sx = from.x < to.x ? 1 : -1
@@ -244,11 +233,7 @@ export function hasLineOfSight(
 /**
  * Get all positions visible from a point within a certain range
  */
-export function getVisiblePositions(
-  grid: Grid,
-  from: GridPosition,
-  range: number
-): GridPosition[] {
+export function getVisiblePositions(grid: Grid, from: GridPosition, range: number): GridPosition[] {
   const visible: GridPosition[] = []
 
   for (let dy = -range; dy <= range; dy++) {

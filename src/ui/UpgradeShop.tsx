@@ -49,7 +49,7 @@ export function UpgradeShop({ onClose }: UpgradeShopProps) {
       onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
         style={{
           backgroundColor: '#1a1a2e',
           border: '2px solid #7ecbff',
@@ -116,7 +116,7 @@ export function UpgradeShop({ onClose }: UpgradeShopProps) {
             marginBottom: '32px',
           }}
         >
-          {getAllUpgradeTypes().map((upgradeType) => {
+          {getAllUpgradeTypes().map(upgradeType => {
             const currentLevel = upgrades[upgradeType]
             const cost = getUpgradeCost(upgradeType)
             const canAfford = persistentData.totalData >= cost
@@ -208,9 +208,7 @@ export function UpgradeShop({ onClose }: UpgradeShopProps) {
                       fontFamily: 'monospace',
                     }}
                   >
-                    {currentLevel === 0
-                      ? 'None'
-                      : formatUpgradeBonus(upgradeType, currentLevel)}
+                    {currentLevel === 0 ? 'None' : formatUpgradeBonus(upgradeType, currentLevel)}
                   </div>
                 </div>
 
@@ -234,14 +232,13 @@ export function UpgradeShop({ onClose }: UpgradeShopProps) {
                       textTransform: 'uppercase',
                       opacity: canAfford ? 1 : 0.5,
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (canAfford) {
                         e.currentTarget.style.backgroundColor = '#4ecdc420'
-                        e.currentTarget.style.boxShadow =
-                          '0 0 12px rgba(78, 205, 196, 0.3)'
+                        e.currentTarget.style.boxShadow = '0 0 12px rgba(78, 205, 196, 0.3)'
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       if (canAfford) {
                         e.currentTarget.style.backgroundColor = '#16213e'
                         e.currentTarget.style.boxShadow = 'none'
@@ -249,13 +246,9 @@ export function UpgradeShop({ onClose }: UpgradeShopProps) {
                     }}
                   >
                     {canAfford ? (
-                      <>
-                        Upgrade - {cost} Data
-                      </>
+                      <>Upgrade - {cost} Data</>
                     ) : (
-                      <>
-                        Insufficient Data ({cost} required)
-                      </>
+                      <>Insufficient Data ({cost} required)</>
                     )}
                   </button>
                 )}
@@ -394,11 +387,11 @@ export function UpgradeShop({ onClose }: UpgradeShopProps) {
             transition: 'all 0.2s ease',
             textTransform: 'uppercase',
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={e => {
             e.currentTarget.style.backgroundColor = '#7ecbff20'
             e.currentTarget.style.boxShadow = '0 0 12px rgba(126, 203, 255, 0.3)'
           }}
-          onMouseLeave={(e) => {
+          onMouseLeave={e => {
             e.currentTarget.style.backgroundColor = '#16213e'
             e.currentTarget.style.boxShadow = 'none'
           }}

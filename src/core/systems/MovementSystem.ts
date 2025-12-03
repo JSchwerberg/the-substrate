@@ -13,11 +13,7 @@ import { findPath, getNextStep } from './Pathfinding'
  * Set a movement target for a process
  * Calculates path and stores it on the process
  */
-export function setMovementTarget(
-  process: Process,
-  target: GridPosition,
-  grid: Grid
-): boolean {
+export function setMovementTarget(process: Process, target: GridPosition, grid: Grid): boolean {
   // Don't pathfind if already at target
   if (positionsEqual(process.position, target)) {
     return false
@@ -41,10 +37,7 @@ export function setMovementTarget(
  * Move a process one step along its current path
  * Returns true if movement occurred
  */
-export function moveProcessOneStep(
-  process: Process,
-  expedition: Expedition
-): boolean {
+export function moveProcessOneStep(process: Process, expedition: Expedition): boolean {
   if (process.path.length === 0 || process.status !== 'moving') {
     return false
   }
@@ -119,10 +112,7 @@ export function moveProcessOneStep(
 /**
  * Process movement for a single tick based on speed
  */
-export function processMovementTick(
-  process: Process,
-  expedition: Expedition
-): number {
+export function processMovementTick(process: Process, expedition: Expedition): number {
   if (process.status !== 'moving' || process.path.length === 0) {
     return 0
   }
@@ -186,11 +176,7 @@ export function moveToward(
 /**
  * Move away from a target position (for fleeing)
  */
-export function moveAway(
-  process: Process,
-  threat: GridPosition,
-  expedition: Expedition
-): boolean {
+export function moveAway(process: Process, threat: GridPosition, expedition: Expedition): boolean {
   const grid = expedition.sector.grid
 
   // Find adjacent tiles and pick the one furthest from threat
@@ -228,7 +214,10 @@ export function moveAway(
   candidates.sort((a, b) => b.dist - a.dist)
 
   const best = candidates[0]
-  if (!best || best.dist <= Math.abs(process.position.x - threat.x) + Math.abs(process.position.y - threat.y)) {
+  if (
+    !best ||
+    best.dist <= Math.abs(process.position.x - threat.x) + Math.abs(process.position.y - threat.y)
+  ) {
     // No better position available
     return false
   }

@@ -11,14 +11,34 @@ import type { ProcessArchetype } from '@core/models/process'
 const VALID_DIFFICULTIES: Difficulty[] = ['easy', 'normal', 'hard']
 const VALID_ARCHETYPES: ProcessArchetype[] = ['scout', 'purifier']
 const VALID_CONDITION_TYPES: ConditionType[] = [
-  'always', 'health_below', 'health_above', 'enemy_in_range', 'enemy_adjacent',
-  'no_enemy_visible', 'ally_in_range', 'ally_health_below', 'at_position',
-  'near_exit', 'near_cache', 'is_idle', 'is_moving', 'has_action_points',
+  'always',
+  'health_below',
+  'health_above',
+  'enemy_in_range',
+  'enemy_adjacent',
+  'no_enemy_visible',
+  'ally_in_range',
+  'ally_health_below',
+  'at_position',
+  'near_exit',
+  'near_cache',
+  'is_idle',
+  'is_moving',
+  'has_action_points',
 ]
 const VALID_ACTION_TYPES: ActionType[] = [
-  'attack_nearest', 'attack_weakest', 'attack_strongest', 'move_to_nearest_enemy',
-  'move_to_nearest_cache', 'move_to_exit', 'retreat_to_spawn', 'flee_from_enemy',
-  'follow_ally', 'hold_position', 'explore', 'heal_ally',
+  'attack_nearest',
+  'attack_weakest',
+  'attack_strongest',
+  'move_to_nearest_enemy',
+  'move_to_nearest_cache',
+  'move_to_exit',
+  'retreat_to_spawn',
+  'flee_from_enemy',
+  'follow_ally',
+  'hold_position',
+  'explore',
+  'heal_ally',
 ]
 
 // ============= Validation Functions =============
@@ -49,7 +69,8 @@ export function isValidBehaviorRule(rule: unknown): rule is BehaviorRule {
   if (typeof r.name !== 'string' || r.name.length === 0) return false
 
   // Required number field
-  if (typeof r.priority !== 'number' || !Number.isInteger(r.priority) || r.priority < 0) return false
+  if (typeof r.priority !== 'number' || !Number.isInteger(r.priority) || r.priority < 0)
+    return false
 
   // Required boolean field
   if (typeof r.enabled !== 'boolean') return false
@@ -73,16 +94,16 @@ export function isValidBehaviorRule(rule: unknown): rule is BehaviorRule {
 
   // Optional fields
   if (r.cooldown !== undefined && (typeof r.cooldown !== 'number' || r.cooldown < 0)) return false
-  if (r.lastTriggered !== undefined && (typeof r.lastTriggered !== 'number' || r.lastTriggered < 0)) return false
+  if (r.lastTriggered !== undefined && (typeof r.lastTriggered !== 'number' || r.lastTriggered < 0))
+    return false
 
   return true
 }
 
 export function isValidSpawnIndex(index: unknown, maxSpawnPoints: number): index is number {
-  return typeof index === 'number' &&
-         Number.isInteger(index) &&
-         index >= 0 &&
-         index < maxSpawnPoints
+  return (
+    typeof index === 'number' && Number.isInteger(index) && index >= 0 && index < maxSpawnPoints
+  )
 }
 
 // ============= Validation with Error Messages =============
@@ -96,14 +117,20 @@ export function validateDifficulty(value: unknown): ValidationResult {
   if (isValidDifficulty(value)) {
     return { valid: true }
   }
-  return { valid: false, error: `Invalid difficulty: ${String(value)}. Must be one of: ${VALID_DIFFICULTIES.join(', ')}` }
+  return {
+    valid: false,
+    error: `Invalid difficulty: ${String(value)}. Must be one of: ${VALID_DIFFICULTIES.join(', ')}`,
+  }
 }
 
 export function validateArchetype(value: unknown): ValidationResult {
   if (isValidArchetype(value)) {
     return { valid: true }
   }
-  return { valid: false, error: `Invalid archetype: ${String(value)}. Must be one of: ${VALID_ARCHETYPES.join(', ')}` }
+  return {
+    valid: false,
+    error: `Invalid archetype: ${String(value)}. Must be one of: ${VALID_ARCHETYPES.join(', ')}`,
+  }
 }
 
 export function validateBehaviorRule(rule: unknown): ValidationResult {

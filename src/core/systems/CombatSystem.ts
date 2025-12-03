@@ -5,12 +5,7 @@
 import { GridPosition, getManhattanDistance } from '../models/grid'
 import { Process, applyDamage as applyDamageToProcess, getEffectiveStat } from '../models/process'
 import { Malware, applyDamageToMalware, activateMalware } from '../models/malware'
-import {
-  Expedition,
-  getMalwareInRange,
-  getProcessesInRange,
-  logEvent,
-} from '../models/expedition'
+import { Expedition, getMalwareInRange, getProcessesInRange, logEvent } from '../models/expedition'
 
 // ============= Combat Types =============
 
@@ -205,8 +200,9 @@ export function getValidTargets(
   expedition: Expedition,
   range: number = 1
 ): Malware[] {
-  return getMalwareInRange(expedition, process.position, range)
-    .filter(m => m.status !== 'destroyed')
+  return getMalwareInRange(expedition, process.position, range).filter(
+    m => m.status !== 'destroyed'
+  )
 }
 
 // ============= Special Attacks =============

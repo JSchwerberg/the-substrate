@@ -41,12 +41,12 @@ export interface ExpeditionEvent {
 // ============= Expedition Status =============
 
 export type ExpeditionStatus =
-  | 'preparing'   // Setting up squad
-  | 'active'      // In progress
-  | 'paused'      // Paused by player
-  | 'victory'     // All objectives complete
-  | 'defeat'      // All processes destroyed
-  | 'retreated'   // Player retreated
+  | 'preparing' // Setting up squad
+  | 'active' // In progress
+  | 'paused' // Paused by player
+  | 'victory' // All objectives complete
+  | 'defeat' // All processes destroyed
+  | 'retreated' // Player retreated
 
 // ============= Expedition Rewards =============
 
@@ -70,7 +70,7 @@ export interface Expedition {
 
   // Timing
   currentTick: number
-  tickSpeed: number  // ms per tick (lower = faster)
+  tickSpeed: number // ms per tick (lower = faster)
   isPaused: boolean
 
   // Status
@@ -99,7 +99,7 @@ export function createExpedition(sector: Sector): Expedition {
     processes: new Map(),
     malware: new Map(),
     currentTick: 0,
-    tickSpeed: 500,  // 500ms per tick (2 ticks per second)
+    tickSpeed: 500, // 500ms per tick (2 ticks per second)
     isPaused: true,
     status: 'preparing',
     eventLog: [],

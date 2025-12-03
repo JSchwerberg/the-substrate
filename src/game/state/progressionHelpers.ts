@@ -94,7 +94,9 @@ export function calculateExpeditionRewards(
   const cacheReward = Math.floor(cachesCollected * REWARDS.CACHE_COLLECTED * rewardMultiplier)
   const malwareReward = Math.floor(malwareDestroyed * REWARDS.MALWARE_DESTROYED * rewardMultiplier)
   const victoryBonus = isVictory ? Math.floor(REWARDS.VICTORY_BONUS * rewardMultiplier) : 0
-  const survivalBonus = Math.floor(Math.floor(ticksSurvived / 10) * REWARDS.SURVIVAL_BONUS_PER_10_TICKS * rewardMultiplier)
+  const survivalBonus = Math.floor(
+    Math.floor(ticksSurvived / 10) * REWARDS.SURVIVAL_BONUS_PER_10_TICKS * rewardMultiplier
+  )
   const totalReward = cacheReward + malwareReward + victoryBonus + survivalBonus
 
   return {

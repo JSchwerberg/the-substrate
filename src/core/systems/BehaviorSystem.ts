@@ -32,10 +32,7 @@ export interface BehaviorContext {
 
 // ============= Condition Evaluation =============
 
-export function evaluateCondition(
-  condition: Condition,
-  context: BehaviorContext
-): boolean {
+export function evaluateCondition(condition: Condition, context: BehaviorContext): boolean {
   const { process, expedition } = context
 
   switch (condition.type) {
@@ -66,8 +63,9 @@ export function evaluateCondition(
 
     case 'ally_in_range': {
       const range = condition.range ?? 3
-      const allies = getProcessesInRange(expedition, process.position, range)
-        .filter(p => p.id !== process.id)
+      const allies = getProcessesInRange(expedition, process.position, range).filter(
+        p => p.id !== process.id
+      )
       return allies.length > 0
     }
 
@@ -78,7 +76,7 @@ export function evaluateCondition(
     }
 
     case 'at_position':
-      return false  // Needs position in condition, not implemented yet
+      return false // Needs position in condition, not implemented yet
 
     case 'near_exit': {
       const range = condition.range ?? 2
@@ -124,10 +122,7 @@ export interface ActionResult {
   targetId?: string
 }
 
-export function executeAction(
-  action: Action,
-  context: BehaviorContext
-): ActionResult {
+export function executeAction(action: Action, context: BehaviorContext): ActionResult {
   const { process, expedition } = context
 
   switch (action.type) {
@@ -191,10 +186,10 @@ function attackNearest(
       target = adjacent[0]!
       break
     case 'weakest':
-      target = adjacent.reduce((a, b) => a.stats.health < b.stats.health ? a : b)
+      target = adjacent.reduce((a, b) => (a.stats.health < b.stats.health ? a : b))
       break
     case 'strongest':
-      target = adjacent.reduce((a, b) => a.stats.health > b.stats.health ? a : b)
+      target = adjacent.reduce((a, b) => (a.stats.health > b.stats.health ? a : b))
       break
   }
 

@@ -24,22 +24,26 @@ export function CombatLog() {
   const recentMessages = combatLog.slice(-10)
 
   return (
-    <div style={{
-      backgroundColor: 'rgba(26, 26, 46, 0.92)',
-      border: '1px solid #333',
-      borderRadius: '4px',
-      padding: '8px 12px',
-      maxWidth: '600px',
-      width: '100%',
-      backdropFilter: 'blur(4px)',
-    }}>
-      <div style={{
-        fontSize: '0.75rem',
-        fontWeight: 600,
-        color: '#7ecbff',
-        marginBottom: '6px',
-        fontFamily: 'monospace',
-      }}>
+    <div
+      style={{
+        backgroundColor: 'rgba(26, 26, 46, 0.92)',
+        border: '1px solid #333',
+        borderRadius: '4px',
+        padding: '8px 12px',
+        maxWidth: '600px',
+        width: '100%',
+        backdropFilter: 'blur(4px)',
+      }}
+    >
+      <div
+        style={{
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          color: '#7ecbff',
+          marginBottom: '6px',
+          fontFamily: 'monospace',
+        }}
+      >
         COMBAT LOG
       </div>
 
@@ -78,11 +82,15 @@ export function CombatLog() {
                 opacity: 0.85 + (index / recentMessages.length) * 0.15, // Fade older messages slightly
               }}
             >
-              <span style={{
-                color: '#666',
-                marginRight: '6px',
-              }}>
-                [{(combatLog.length - recentMessages.length + index + 1).toString().padStart(3, '0')}]
+              <span
+                style={{
+                  color: '#666',
+                  marginRight: '6px',
+                }}
+              >
+                [
+                {(combatLog.length - recentMessages.length + index + 1).toString().padStart(3, '0')}
+                ]
               </span>
               {message}
             </div>

@@ -16,7 +16,4 @@ export {
   importSaveData,
 } from './SaveManager'
 
-export type {
-  SavedProgression,
-  ExpeditionSave,
-} from './SaveManager'
+export type { SavedProgression, ExpeditionSave } from './SaveManager'

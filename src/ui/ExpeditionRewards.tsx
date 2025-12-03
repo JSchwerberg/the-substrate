@@ -19,7 +19,9 @@ export function ExpeditionRewards({ onNewExpedition }: ExpeditionRewardsProps) {
   const generateNewSector = useGameStore(state => state.generateNewSector)
 
   const [claimed, setClaimed] = React.useState(false)
-  const [rewards, setRewards] = React.useState<ReturnType<typeof calculateExpeditionRewards> | null>(null)
+  const [rewards, setRewards] = React.useState<ReturnType<
+    typeof calculateExpeditionRewards
+  > | null>(null)
 
   // Don't show if expedition is still active
   if (expeditionResult === 'active') {
@@ -119,9 +121,7 @@ export function ExpeditionRewards({ onNewExpedition }: ExpeditionRewardsProps) {
               fontFamily: 'monospace',
             }}
           >
-            {isVictory
-              ? 'All malware eliminated'
-              : 'All processes destroyed'}
+            {isVictory ? 'All malware eliminated' : 'All processes destroyed'}
           </div>
         </div>
 
@@ -217,9 +217,7 @@ export function ExpeditionRewards({ onNewExpedition }: ExpeditionRewardsProps) {
                 borderRadius: '4px',
               }}
             >
-              <span style={{ color: '#888' }}>
-                Survival: {expeditionScore.ticksSurvived} ticks
-              </span>
+              <span style={{ color: '#888' }}>Survival: {expeditionScore.ticksSurvived} ticks</span>
               <span
                 style={{
                   color: '#4ecdc4',
@@ -243,9 +241,7 @@ export function ExpeditionRewards({ onNewExpedition }: ExpeditionRewardsProps) {
                   border: '1px solid #4ade80',
                 }}
               >
-                <span style={{ color: '#4ade80', fontWeight: 600 }}>
-                  Victory Bonus
-                </span>
+                <span style={{ color: '#4ade80', fontWeight: 600 }}>Victory Bonus</span>
                 <span
                   style={{
                     color: '#4ade80',
@@ -311,11 +307,11 @@ export function ExpeditionRewards({ onNewExpedition }: ExpeditionRewardsProps) {
               transition: 'all 0.2s ease',
               textTransform: 'uppercase',
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={e => {
               e.currentTarget.style.backgroundColor = '#4ecdc420'
               e.currentTarget.style.boxShadow = '0 0 16px rgba(78, 205, 196, 0.4)'
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={e => {
               e.currentTarget.style.backgroundColor = '#16213e'
               e.currentTarget.style.boxShadow = 'none'
             }}
@@ -339,11 +335,11 @@ export function ExpeditionRewards({ onNewExpedition }: ExpeditionRewardsProps) {
               transition: 'all 0.2s ease',
               textTransform: 'uppercase',
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={e => {
               e.currentTarget.style.backgroundColor = '#7ecbff20'
               e.currentTarget.style.boxShadow = '0 0 16px rgba(126, 203, 255, 0.4)'
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={e => {
               e.currentTarget.style.backgroundColor = '#16213e'
               e.currentTarget.style.boxShadow = 'none'
             }}

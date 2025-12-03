@@ -31,72 +31,75 @@ const FOG_COLOR = 0x0a0a12
 
 export function Grid({ grid, tileSize, selectedTile }: GridProps) {
   // Memoize the draw function to prevent unnecessary redraws
-  const draw = useCallback((g: Graphics) => {
-    g.clear()
+  const draw = useCallback(
+    (g: Graphics) => {
+      g.clear()
 
-    // Draw tiles
-    for (let y = 0; y < grid.height; y++) {
-      const row = grid.tiles[y]
-      if (!row) continue
+      // Draw tiles
+      for (let y = 0; y < grid.height; y++) {
+        const row = grid.tiles[y]
+        if (!row) continue
 
-      for (let x = 0; x < grid.width; x++) {
-        const tile = row[x]
-        if (!tile) continue
+        for (let x = 0; x < grid.width; x++) {
+          const tile = row[x]
+          if (!tile) continue
 
-        const px = x * tileSize
-        const py = y * tileSize
-        const padding = 1
+          const px = x * tileSize
+          const py = y * tileSize
+          const padding = 1
 
-        // Draw base tile (always, for grid structure)
-        if (tile.visibility === 'hidden') {
-          // Hidden tiles show only fog
-          g.rect(px + padding, py + padding, tileSize - padding * 2, tileSize - padding * 2)
-          g.fill(FOG_COLOR)
-        } else {
-          // Visible/revealed tiles show their type
-          const baseColor = TILE_COLORS[tile.type]
-          const alpha = VISIBILITY_ALPHA[tile.visibility]
-
-          g.rect(px + padding, py + padding, tileSize - padding * 2, tileSize - padding * 2)
-          g.fill({ color: baseColor, alpha })
-
-          // Add corruption overlay if tile has corruption level
-          if (tile.corruptionLevel > 0 && tile.type !== 'corruption') {
-            const corruptionAlpha = (tile.corruptionLevel / 100) * 0.4 * alpha
+          // Draw base tile (always, for grid structure)
+          if (tile.visibility === 'hidden') {
+            // Hidden tiles show only fog
             g.rect(px + padding, py + padding, tileSize - padding * 2, tileSize - padding * 2)
-            g.fill({ color: 0x6b2d5b, alpha: corruptionAlpha })
-          }
+            g.fill(FOG_COLOR)
+          } else {
+            // Visible/revealed tiles show their type
+            const baseColor = TILE_COLORS[tile.type]
+            const alpha = VISIBILITY_ALPHA[tile.visibility]
 
-          // Dim overlay for revealed but not visible
-          if (tile.visibility === 'revealed') {
             g.rect(px + padding, py + padding, tileSize - padding * 2, tileSize - padding * 2)
-            g.fill({ color: 0x000000, alpha: 0.4 })
+            g.fill({ color: baseColor, alpha })
+
+            // Add corruption overlay if tile has corruption level
+            if (tile.corruptionLevel > 0 && tile.type !== 'corruption') {
+              const corruptionAlpha = (tile.corruptionLevel / 100) * 0.4 * alpha
+              g.rect(px + padding, py + padding, tileSize - padding * 2, tileSize - padding * 2)
+              g.fill({ color: 0x6b2d5b, alpha: corruptionAlpha })
+            }
+
+            // Dim overlay for revealed but not visible
+            if (tile.visibility === 'revealed') {
+              g.rect(px + padding, py + padding, tileSize - padding * 2, tileSize - padding * 2)
+              g.fill({ color: 0x000000, alpha: 0.4 })
+            }
           }
         }
       }
-    }
 
-    // Draw grid lines
-    g.setStrokeStyle({ width: 1, color: 0x3a3a4a, alpha: 0.3 })
-    for (let x = 0; x <= grid.width; x++) {
-      g.moveTo(x * tileSize, 0)
-      g.lineTo(x * tileSize, grid.height * tileSize)
-    }
-    for (let y = 0; y <= grid.height; y++) {
-      g.moveTo(0, y * tileSize)
-      g.lineTo(grid.width * tileSize, y * tileSize)
-    }
-    g.stroke()
-
-    // Draw selection highlight
-    if (selectedTile) {
-      const sx = selectedTile.x * tileSize
-      const sy = selectedTile.y * tileSize
-      g.setStrokeStyle({ width: 2, color: 0xffffff, alpha: 0.8 })
-      g.rect(sx + 1, sy + 1, tileSize - 2, tileSize - 2)
+      // Draw grid lines
+      g.setStrokeStyle({ width: 1, color: 0x3a3a4a, alpha: 0.3 })
+      for (let x = 0; x <= grid.width; x++) {
+        g.moveTo(x * tileSize, 0)
+        g.lineTo(x * tileSize, grid.height * tileSize)
+      }
+      for (let y = 0; y <= grid.height; y++) {
+        g.moveTo(0, y * tileSize)
+        g.lineTo(grid.width * tileSize, y * tileSize)
+      }
       g.stroke()
-    }
-  }, [grid, tileSize, selectedTile])
+
+      // Draw selection highlight
+      if (selectedTile) {
+        const sx = selectedTile.x * tileSize
+        const sy = selectedTile.y * tileSize
+        g.setStrokeStyle({ width: 2, color: 0xffffff, alpha: 0.8 })
+        g.rect(sx + 1, sy + 1, tileSize - 2, tileSize - 2)
+        g.stroke()
+      }
+    },
+    [grid, tileSize, selectedTile]
+  )
 
   return <pixiGraphics draw={draw} eventMode="static" />
 }
@@ -109,22 +112,25 @@ interface ViewerMarkerProps {
 }
 
 export function ViewerMarker({ position, tileSize, color = 0x4ecdc4 }: ViewerMarkerProps) {
-  const draw = useCallback((g: Graphics) => {
-    g.clear()
+  const draw = useCallback(
+    (g: Graphics) => {
+      g.clear()
 
-    const cx = position.x * tileSize + tileSize / 2
-    const cy = position.y * tileSize + tileSize / 2
-    const radius = tileSize * 0.35
+      const cx = position.x * tileSize + tileSize / 2
+      const cy = position.y * tileSize + tileSize / 2
+      const radius = tileSize * 0.35
 
-    // Draw circle for viewer
-    g.circle(cx, cy, radius)
-    g.fill(color)
+      // Draw circle for viewer
+      g.circle(cx, cy, radius)
+      g.fill(color)
 
-    // Draw outline
-    g.setStrokeStyle({ width: 2, color: 0xffffff, alpha: 0.8 })
-    g.circle(cx, cy, radius)
-    g.stroke()
-  }, [position, tileSize, color])
+      // Draw outline
+      g.setStrokeStyle({ width: 2, color: 0xffffff, alpha: 0.8 })
+      g.circle(cx, cy, radius)
+      g.stroke()
+    },
+    [position, tileSize, color]
+  )
 
   return <pixiGraphics draw={draw} />
 }

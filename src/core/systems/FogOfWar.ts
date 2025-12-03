@@ -2,13 +2,7 @@
  * Fog of War system - manages tile visibility based on entity positions
  */
 
-import {
-  Grid,
-  GridPosition,
-  getTile,
-  setTileVisibility,
-  isInBounds,
-} from '../models/grid'
+import { Grid, GridPosition, getTile, setTileVisibility, isInBounds } from '../models/grid'
 import { getVisiblePositions } from './Pathfinding'
 
 /**
@@ -34,11 +28,7 @@ export function updateFogOfWar(
 
   // Then, mark tiles visible from each viewer's position
   for (const viewer of viewers) {
-    const visiblePositions = getVisiblePositions(
-      grid,
-      viewer.position,
-      viewer.sightRange
-    )
+    const visiblePositions = getVisiblePositions(grid, viewer.position, viewer.sightRange)
 
     for (const pos of visiblePositions) {
       setTileVisibility(grid, pos, 'visible')
@@ -52,11 +42,7 @@ export function updateFogOfWar(
 /**
  * Reveal a specific area (e.g., when a scout ability is used)
  */
-export function revealArea(
-  grid: Grid,
-  center: GridPosition,
-  radius: number
-): void {
+export function revealArea(grid: Grid, center: GridPosition, radius: number): void {
   for (let dy = -radius; dy <= radius; dy++) {
     for (let dx = -radius; dx <= radius; dx++) {
       const pos = { x: center.x + dx, y: center.y + dy }
@@ -76,10 +62,7 @@ export function revealArea(
 /**
  * Check if a position is currently visible to any viewer
  */
-export function isPositionVisible(
-  grid: Grid,
-  position: GridPosition
-): boolean {
+export function isPositionVisible(grid: Grid, position: GridPosition): boolean {
   const tile = getTile(grid, position)
   return tile?.visibility === 'visible'
 }
@@ -87,10 +70,7 @@ export function isPositionVisible(
 /**
  * Check if a position has been revealed (seen at least once)
  */
-export function isPositionRevealed(
-  grid: Grid,
-  position: GridPosition
-): boolean {
+export function isPositionRevealed(grid: Grid, position: GridPosition): boolean {
   const tile = getTile(grid, position)
   return tile?.visibility === 'visible' || tile?.visibility === 'revealed'
 }

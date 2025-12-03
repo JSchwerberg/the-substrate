@@ -405,7 +405,9 @@ describe('SaveManager', () => {
         },
       }
 
-      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow('Invalid save data format')
+      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow(
+        'Invalid save data format'
+      )
     })
 
     it('should reject missing required fields in progression', async () => {
@@ -416,7 +418,9 @@ describe('SaveManager', () => {
         },
       }
 
-      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow('Invalid save data format')
+      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow(
+        'Invalid save data format'
+      )
     })
 
     it('should reject invalid difficulty value', async () => {
@@ -431,14 +435,21 @@ describe('SaveManager', () => {
         },
       }
 
-      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow('Invalid save data format')
+      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow(
+        'Invalid save data format'
+      )
     })
 
     it('should reject negative numbers where not allowed', async () => {
       const invalidData = {
         progression: {
           version: 1,
-          persistentData: { totalData: -100, expeditionsCompleted: 0, expeditionsLost: 0, totalMalwareDestroyed: 0 },
+          persistentData: {
+            totalData: -100,
+            expeditionsCompleted: 0,
+            expeditionsLost: 0,
+            totalMalwareDestroyed: 0,
+          },
           upgrades: createMockUpgrades(),
           selectedDifficulty: 'normal',
           behaviorRules: [],
@@ -446,7 +457,9 @@ describe('SaveManager', () => {
         },
       }
 
-      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow('Invalid save data format')
+      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow(
+        'Invalid save data format'
+      )
     })
 
     it('should reject invalid behavior rule structure', async () => {
@@ -470,7 +483,9 @@ describe('SaveManager', () => {
         },
       }
 
-      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow('Invalid save data format')
+      await expect(importSaveData(JSON.stringify(invalidData))).rejects.toThrow(
+        'Invalid save data format'
+      )
     })
 
     it('should accept valid empty data', async () => {
@@ -533,9 +548,30 @@ describe('SaveManager', () => {
 
     it('should preserve array ordering', async () => {
       const rules = [
-        { id: '1', name: 'First', priority: 1, condition: { type: 'always' as const }, action: { type: 'attack_nearest' as const }, enabled: true },
-        { id: '2', name: 'Second', priority: 2, condition: { type: 'always' as const }, action: { type: 'explore' as const }, enabled: true },
-        { id: '3', name: 'Third', priority: 3, condition: { type: 'always' as const }, action: { type: 'retreat_to_spawn' as const }, enabled: false },
+        {
+          id: '1',
+          name: 'First',
+          priority: 1,
+          condition: { type: 'always' as const },
+          action: { type: 'attack_nearest' as const },
+          enabled: true,
+        },
+        {
+          id: '2',
+          name: 'Second',
+          priority: 2,
+          condition: { type: 'always' as const },
+          action: { type: 'explore' as const },
+          enabled: true,
+        },
+        {
+          id: '3',
+          name: 'Third',
+          priority: 3,
+          condition: { type: 'always' as const },
+          action: { type: 'retreat_to_spawn' as const },
+          enabled: false,
+        },
       ]
 
       const state = createMockGameState({ behaviorRules: rules })

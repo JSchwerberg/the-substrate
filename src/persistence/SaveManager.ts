@@ -104,7 +104,9 @@ export async function saveProgression(state: GameState): Promise<void> {
       const request = store.put(saveData, PROGRESSION_KEY)
 
       request.onerror = () => {
-        reject(new Error(`Failed to save progression: ${request.error?.message ?? 'Unknown error'}`))
+        reject(
+          new Error(`Failed to save progression: ${request.error?.message ?? 'Unknown error'}`)
+        )
       }
 
       request.onsuccess = () => {
@@ -140,7 +142,9 @@ export async function loadProgression(): Promise<SavedProgression | null> {
       const request = store.get(PROGRESSION_KEY)
 
       request.onerror = () => {
-        reject(new Error(`Failed to load progression: ${request.error?.message ?? 'Unknown error'}`))
+        reject(
+          new Error(`Failed to load progression: ${request.error?.message ?? 'Unknown error'}`)
+        )
       }
 
       request.onsuccess = () => {
@@ -259,7 +263,9 @@ export async function clearExpeditionSave(): Promise<void> {
       const request = store.delete(EXPEDITION_KEY)
 
       request.onerror = () => {
-        reject(new Error(`Failed to clear expedition save: ${request.error?.message ?? 'Unknown error'}`))
+        reject(
+          new Error(`Failed to clear expedition save: ${request.error?.message ?? 'Unknown error'}`)
+        )
       }
 
       request.onsuccess = () => {
@@ -336,11 +342,15 @@ export async function exportSaveData(): Promise<string> {
   const progression = await loadProgression()
   const expedition = await loadExpedition()
 
-  return JSON.stringify({
-    progression,
-    expedition,
-    exportedAt: Date.now(),
-  }, null, 2)
+  return JSON.stringify(
+    {
+      progression,
+      expedition,
+      exportedAt: Date.now(),
+    },
+    null,
+    2
+  )
 }
 
 /**
@@ -353,7 +363,9 @@ export async function importSaveData(jsonData: string): Promise<void> {
   try {
     rawData = JSON.parse(jsonData)
   } catch (error) {
-    throw new Error(`Failed to parse save data: ${error instanceof Error ? error.message : 'Invalid JSON'}`)
+    throw new Error(
+      `Failed to parse save data: ${error instanceof Error ? error.message : 'Invalid JSON'}`
+    )
   }
 
   // Validate against schema to prevent injection attacks

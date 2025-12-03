@@ -13,7 +13,12 @@ import { setMovementTarget } from '@core/systems/MovementSystem'
 import { executeTick } from '@core/systems/TickSystem'
 import { BehaviorRule, RuleTemplate, createDefaultRules } from '@core/models/behavior'
 import { saveProgression, loadProgression } from '@persistence/SaveManager'
-import { isValidDifficulty, isValidBehaviorRule, isValidArchetype, isValidSpawnIndex } from '@game/validation'
+import {
+  isValidDifficulty,
+  isValidBehaviorRule,
+  isValidArchetype,
+  isValidSpawnIndex,
+} from '@game/validation'
 import {
   RESOURCES,
   CAPACITY,
@@ -21,6 +26,7 @@ import {
   UPGRADES,
   REWARDS,
   DIFFICULTY,
+  SAFE_LIMITS,
 } from '@core/constants/GameConfig'
 
 // Deep clone a grid to ensure immutability
@@ -28,10 +34,13 @@ function cloneGrid(grid: Grid): Grid {
   return {
     width: grid.width,
     height: grid.height,
-    tiles: grid.tiles.map(row =>
-      row.map(tile => ({ ...tile, entityIds: [...tile.entityIds] }))
-    ),
+    tiles: grid.tiles.map(row => row.map(tile => ({ ...tile, entityIds: [...tile.entityIds] }))),
   }
+}
+
+// Clamp a value to safe integer bounds (prevents overflow)
+function clampToSafe(value: number, max: number = SAFE_LIMITS.MAX_DATA): number {
+  return Math.max(0, Math.min(Math.floor(value), max))
 }
 
 // ============= Deployment Costs =============
@@ -44,10 +53,14 @@ export const DEPLOYMENT_COSTS: Record<ProcessArchetype, Partial<Resources>> = {
 // ============= Upgrade Costs =============
 
 export const UPGRADE_COSTS: Record<UpgradeType, (level: number) => number> = {
-  maxHealth: (level: number) => Math.floor(UPGRADES.BASE_COST.MAX_HEALTH * Math.pow(UPGRADES.COST_MULTIPLIER, level)),
-  attack: (level: number) => Math.floor(UPGRADES.BASE_COST.ATTACK * Math.pow(UPGRADES.COST_MULTIPLIER, level)),
-  defense: (level: number) => Math.floor(UPGRADES.BASE_COST.DEFENSE * Math.pow(UPGRADES.COST_MULTIPLIER, level)),
-  startingCycles: (level: number) => Math.floor(UPGRADES.BASE_COST.STARTING_CYCLES * Math.pow(UPGRADES.COST_MULTIPLIER, level)),
+  maxHealth: (level: number) =>
+    Math.floor(UPGRADES.BASE_COST.MAX_HEALTH * Math.pow(UPGRADES.COST_MULTIPLIER, level)),
+  attack: (level: number) =>
+    Math.floor(UPGRADES.BASE_COST.ATTACK * Math.pow(UPGRADES.COST_MULTIPLIER, level)),
+  defense: (level: number) =>
+    Math.floor(UPGRADES.BASE_COST.DEFENSE * Math.pow(UPGRADES.COST_MULTIPLIER, level)),
+  startingCycles: (level: number) =>
+    Math.floor(UPGRADES.BASE_COST.STARTING_CYCLES * Math.pow(UPGRADES.COST_MULTIPLIER, level)),
 }
 
 // Re-export rewards from config for backward compatibility
@@ -238,7 +251,9 @@ export const useGameStore = create<GameState>()(
 
       // Spawn some malware based on difficulty
       const malwareList: Malware[] = []
-      const malwareCount = Math.floor(sector.grid.width * sector.grid.height * sector.config.malwareDensity * malwareMultiplier)
+      const malwareCount = Math.floor(
+        sector.grid.width * sector.grid.height * sector.config.malwareDensity * malwareMultiplier
+      )
 
       const malwareTypes: MalwareType[] = ['worm', 'worm', 'worm', 'trojan', 'rootkit']
 
@@ -377,8 +392,18 @@ export const useGameStore = create<GameState>()(
 
     // Game tick - delegates to TickSystem for business logic
     tick: () => {
-      const { processes, malware, currentSector, isPaused, expeditionActive, expeditionResult, combatLog, expeditionScore } = get()
-      if (!currentSector || isPaused || !expeditionActive || expeditionResult !== 'active') return
+      const {
+        processes,
+        malware,
+        currentSector,
+        isPaused,
+        expeditionActive,
+        expeditionResult,
+        combatLog,
+        expeditionScore,
+      } = get()
+      // Block tick on defeat, but allow continuation after victory for cache collection
+      if (!currentSector || isPaused || !expeditionActive || expeditionResult === 'defeat') return
 
       // Execute tick using the core TickSystem
       const result = executeTick({
@@ -408,7 +433,8 @@ export const useGameStore = create<GameState>()(
           malwareDestroyed: expeditionScore.malwareDestroyed + result.malwareDestroyed,
           ticksSurvived: expeditionScore.ticksSurvived + 1,
         },
-        isPaused: result.expeditionResult !== 'active' ? true : get().isPaused,
+        // Only auto-pause on defeat, not victory (allow collecting remaining caches)
+        isPaused: result.expeditionResult === 'defeat' ? true : get().isPaused,
         combatLog: result.combatLog,
       })
 
@@ -522,28 +548,38 @@ export const useGameStore = create<GameState>()(
       // Apply difficulty reward multiplier
       const rewardMultiplier = DIFFICULTY.REWARD_MULTIPLIER[selectedDifficulty]
 
-      // Calculate rewards
-      const cacheReward = Math.floor(expeditionScore.cachesCollected * REWARDS.CACHE_COLLECTED * rewardMultiplier)
-      const malwareReward = Math.floor(expeditionScore.malwareDestroyed * REWARDS.MALWARE_DESTROYED * rewardMultiplier)
-      const victoryBonus = expeditionResult === 'victory' ? Math.floor(REWARDS.VICTORY_BONUS * rewardMultiplier) : 0
-      const survivalBonus = Math.floor(Math.floor(expeditionScore.ticksSurvived / 10) * REWARDS.SURVIVAL_BONUS_PER_10_TICKS * rewardMultiplier)
-      const totalReward = cacheReward + malwareReward + victoryBonus + survivalBonus
+      // Clamp score inputs to prevent manipulation-based overflow
+      const safeCaches = clampToSafe(expeditionScore.cachesCollected, SAFE_LIMITS.MAX_SCORE)
+      const safeMalware = clampToSafe(expeditionScore.malwareDestroyed, SAFE_LIMITS.MAX_SCORE)
+      const safeTicks = clampToSafe(expeditionScore.ticksSurvived, SAFE_LIMITS.MAX_SCORE)
 
-      // Update persistent data
-      const newExpeditionsCompleted = expeditionResult === 'victory'
-        ? persistentData.expeditionsCompleted + 1
-        : persistentData.expeditionsCompleted
+      // Calculate rewards with clamped values
+      const cacheReward = clampToSafe(safeCaches * REWARDS.CACHE_COLLECTED * rewardMultiplier)
+      const malwareReward = clampToSafe(safeMalware * REWARDS.MALWARE_DESTROYED * rewardMultiplier)
+      const victoryBonus =
+        expeditionResult === 'victory' ? clampToSafe(REWARDS.VICTORY_BONUS * rewardMultiplier) : 0
+      const survivalBonus = clampToSafe(
+        Math.floor(safeTicks / 10) * REWARDS.SURVIVAL_BONUS_PER_10_TICKS * rewardMultiplier
+      )
+      const totalReward = clampToSafe(cacheReward + malwareReward + victoryBonus + survivalBonus)
 
-      const newExpeditionsLost = expeditionResult === 'defeat'
-        ? persistentData.expeditionsLost + 1
-        : persistentData.expeditionsLost
+      // Update persistent data with overflow protection
+      const newExpeditionsCompleted =
+        expeditionResult === 'victory'
+          ? clampToSafe(persistentData.expeditionsCompleted + 1)
+          : persistentData.expeditionsCompleted
+
+      const newExpeditionsLost =
+        expeditionResult === 'defeat'
+          ? clampToSafe(persistentData.expeditionsLost + 1)
+          : persistentData.expeditionsLost
 
       set({
         persistentData: {
-          totalData: persistentData.totalData + totalReward,
+          totalData: clampToSafe(persistentData.totalData + totalReward),
           expeditionsCompleted: newExpeditionsCompleted,
           expeditionsLost: newExpeditionsLost,
-          totalMalwareDestroyed: persistentData.totalMalwareDestroyed + expeditionScore.malwareDestroyed,
+          totalMalwareDestroyed: clampToSafe(persistentData.totalMalwareDestroyed + safeMalware),
         },
       })
 

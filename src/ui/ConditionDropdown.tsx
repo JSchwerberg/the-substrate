@@ -10,21 +10,30 @@ interface ConditionDropdownProps {
 }
 
 // Human-readable condition names and metadata
-const CONDITION_METADATA: Record<ConditionType, { label: string; hasValue?: boolean; hasRange?: boolean; defaultValue?: number; defaultRange?: number }> = {
-  'always': { label: 'Always' },
-  'health_below': { label: 'Health Below', hasValue: true, defaultValue: 50 },
-  'health_above': { label: 'Health Above', hasValue: true, defaultValue: 75 },
-  'enemy_in_range': { label: 'Enemy in Range', hasRange: true, defaultRange: 4 },
-  'enemy_adjacent': { label: 'Enemy Adjacent' },
-  'no_enemy_visible': { label: 'No Enemy Visible' },
-  'ally_in_range': { label: 'Ally in Range', hasRange: true, defaultRange: 3 },
-  'ally_health_below': { label: 'Ally Health Below', hasValue: true, defaultValue: 50 },
-  'at_position': { label: 'At Position' },
-  'near_exit': { label: 'Near Exit', hasRange: true, defaultRange: 2 },
-  'near_cache': { label: 'Near Cache', hasRange: true, defaultRange: 3 },
-  'is_idle': { label: 'Is Idle' },
-  'is_moving': { label: 'Is Moving' },
-  'has_action_points': { label: 'Has Action Points' },
+const CONDITION_METADATA: Record<
+  ConditionType,
+  {
+    label: string
+    hasValue?: boolean
+    hasRange?: boolean
+    defaultValue?: number
+    defaultRange?: number
+  }
+> = {
+  always: { label: 'Always' },
+  health_below: { label: 'Health Below', hasValue: true, defaultValue: 50 },
+  health_above: { label: 'Health Above', hasValue: true, defaultValue: 75 },
+  enemy_in_range: { label: 'Enemy in Range', hasRange: true, defaultRange: 4 },
+  enemy_adjacent: { label: 'Enemy Adjacent' },
+  no_enemy_visible: { label: 'No Enemy Visible' },
+  ally_in_range: { label: 'Ally in Range', hasRange: true, defaultRange: 3 },
+  ally_health_below: { label: 'Ally Health Below', hasValue: true, defaultValue: 50 },
+  at_position: { label: 'At Position' },
+  near_exit: { label: 'Near Exit', hasRange: true, defaultRange: 2 },
+  near_cache: { label: 'Near Cache', hasRange: true, defaultRange: 3 },
+  is_idle: { label: 'Is Idle' },
+  is_moving: { label: 'Is Moving' },
+  has_action_points: { label: 'Has Action Points' },
 }
 
 export function ConditionDropdown({ condition, onChange }: ConditionDropdownProps) {
@@ -54,16 +63,18 @@ export function ConditionDropdown({ condition, onChange }: ConditionDropdownProp
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      flex: 1,
-    }}>
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        flex: 1,
+      }}
+    >
       {/* Condition Type Dropdown */}
       <select
         value={condition.type}
-        onChange={(e) => handleTypeChange(e.target.value as ConditionType)}
+        onChange={e => handleTypeChange(e.target.value as ConditionType)}
         style={{
           padding: '4px 6px',
           backgroundColor: '#16213e',
@@ -88,15 +99,17 @@ export function ConditionDropdown({ condition, onChange }: ConditionDropdownProp
 
       {/* Value Input (for threshold conditions) */}
       {metadata.hasValue && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
           <input
             type="number"
             value={condition.value ?? 50}
-            onChange={(e) => handleValueChange(Number(e.target.value))}
+            onChange={e => handleValueChange(Number(e.target.value))}
             min={0}
             max={100}
             style={{
@@ -113,11 +126,13 @@ export function ConditionDropdown({ condition, onChange }: ConditionDropdownProp
               outline: 'none',
             }}
           />
-          <span style={{
-            fontSize: '0.65rem',
-            color: '#888',
-            fontFamily: 'monospace',
-          }}>
+          <span
+            style={{
+              fontSize: '0.65rem',
+              color: '#888',
+              fontFamily: 'monospace',
+            }}
+          >
             %
           </span>
         </div>
@@ -125,15 +140,17 @@ export function ConditionDropdown({ condition, onChange }: ConditionDropdownProp
 
       {/* Range Input (for range-based conditions) */}
       {metadata.hasRange && (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
           <input
             type="number"
             value={condition.range ?? 3}
-            onChange={(e) => handleRangeChange(Number(e.target.value))}
+            onChange={e => handleRangeChange(Number(e.target.value))}
             min={1}
             max={10}
             style={{
@@ -150,11 +167,13 @@ export function ConditionDropdown({ condition, onChange }: ConditionDropdownProp
               outline: 'none',
             }}
           />
-          <span style={{
-            fontSize: '0.65rem',
-            color: '#888',
-            fontFamily: 'monospace',
-          }}>
+          <span
+            style={{
+              fontSize: '0.65rem',
+              color: '#888',
+              fontFamily: 'monospace',
+            }}
+          >
             tiles
           </span>
         </div>

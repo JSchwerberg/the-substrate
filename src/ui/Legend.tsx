@@ -35,12 +35,14 @@ export function Legend() {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
-    <div style={{
-      backgroundColor: '#1a1a2e',
-      border: '1px solid #333',
-      borderRadius: '4px',
-      overflow: 'hidden',
-    }}>
+    <div
+      style={{
+        backgroundColor: '#1a1a2e',
+        border: '1px solid #333',
+        borderRadius: '4px',
+        overflow: 'hidden',
+      }}
+    >
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         style={{
@@ -54,29 +56,35 @@ export function Legend() {
           alignItems: 'center',
         }}
       >
-        <span style={{
-          fontSize: '0.9rem',
-          fontWeight: 600,
-          color: '#7ecbff',
-          fontFamily: 'monospace',
-        }}>
+        <span
+          style={{
+            fontSize: '0.9rem',
+            fontWeight: 600,
+            color: '#7ecbff',
+            fontFamily: 'monospace',
+          }}
+        >
           LEGEND
         </span>
-        <span style={{
-          color: '#666',
-          fontSize: '0.8rem',
-        }}>
+        <span
+          style={{
+            color: '#666',
+            fontSize: '0.8rem',
+          }}
+        >
           {isExpanded ? '[-]' : '[+]'}
         </span>
       </button>
 
       {isExpanded && (
-        <div style={{
-          padding: '0 12px 12px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-        }}>
+        <div
+          style={{
+            padding: '0 12px 12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
           <LegendSection title="Tiles" items={TILE_LEGEND} />
           <LegendSection title="Processes" items={PROCESS_LEGEND} />
           <LegendSection title="Malware" items={MALWARE_LEGEND} />
@@ -89,21 +97,25 @@ export function Legend() {
 function LegendSection({ title, items }: { title: string; items: LegendItem[] }) {
   return (
     <div>
-      <div style={{
-        fontSize: '0.7rem',
-        color: '#666',
-        fontFamily: 'monospace',
-        marginBottom: '6px',
-        textTransform: 'uppercase',
-        letterSpacing: '0.5px',
-      }}>
+      <div
+        style={{
+          fontSize: '0.7rem',
+          color: '#666',
+          fontFamily: 'monospace',
+          marginBottom: '6px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.5px',
+        }}
+      >
         {title}
       </div>
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '4px',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+        }}
+      >
         {items.map(item => (
           <div
             key={item.name}
@@ -113,26 +125,32 @@ function LegendSection({ title, items }: { title: string; items: LegendItem[] })
               gap: '8px',
             }}
           >
-            <div style={{
-              width: '14px',
-              height: '14px',
-              backgroundColor: item.color,
-              borderRadius: '2px',
-              flexShrink: 0,
-            }} />
-            <span style={{
-              fontSize: '0.7rem',
-              fontFamily: 'monospace',
-              color: '#aaa',
-              minWidth: '60px',
-            }}>
+            <div
+              style={{
+                width: '14px',
+                height: '14px',
+                backgroundColor: item.color,
+                borderRadius: '2px',
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                fontSize: '0.7rem',
+                fontFamily: 'monospace',
+                color: '#aaa',
+                minWidth: '60px',
+              }}
+            >
               {item.name}
             </span>
-            <span style={{
-              fontSize: '0.65rem',
-              fontFamily: 'monospace',
-              color: '#666',
-            }}>
+            <span
+              style={{
+                fontSize: '0.65rem',
+                fontFamily: 'monospace',
+                color: '#666',
+              }}
+            >
               {item.description}
             </span>
           </div>

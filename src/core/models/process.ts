@@ -12,7 +12,7 @@ export interface ArchetypeDefinition {
   name: string
   description: string
   baseStats: ProcessBaseStats
-  color: number  // Hex color for rendering
+  color: number // Hex color for rendering
 }
 
 export const ARCHETYPES: Record<ProcessArchetype, ArchetypeDefinition> = {
@@ -27,7 +27,7 @@ export const ARCHETYPES: Record<ProcessArchetype, ArchetypeDefinition> = {
       sightRange: 4,
       maxActionPoints: 2,
     },
-    color: 0x4ecdc4,  // Cyan
+    color: 0x4ecdc4, // Cyan
   },
   purifier: {
     name: 'Purifier',
@@ -40,7 +40,7 @@ export const ARCHETYPES: Record<ProcessArchetype, ArchetypeDefinition> = {
       sightRange: 2,
       maxActionPoints: 1,
     },
-    color: 0xff6b6b,  // Red
+    color: 0xff6b6b, // Red
   },
 }
 
@@ -50,8 +50,8 @@ export interface ProcessBaseStats {
   maxHealth: number
   attack: number
   defense: number
-  speed: number        // Tiles per turn
-  sightRange: number   // Fog reveal radius
+  speed: number // Tiles per turn
+  sightRange: number // Fog reveal radius
   maxActionPoints: number
 }
 
@@ -74,7 +74,7 @@ export interface StatusEffect {
   id: string
   name: string
   type: 'buff' | 'debuff'
-  duration: number  // Ticks remaining, -1 for permanent
+  duration: number // Ticks remaining, -1 for permanent
   statModifiers?: Partial<ProcessBaseStats>
 }
 
@@ -90,13 +90,13 @@ export interface Process {
 
   // Position and state
   position: GridPosition
-  targetPosition: GridPosition | null  // For movement animation
+  targetPosition: GridPosition | null // For movement animation
   status: ProcessStatus
   statusEffects: StatusEffect[]
 
   // Movement
-  path: GridPosition[]  // Current path being followed
-  pathIndex: number     // Current position in path
+  path: GridPosition[] // Current path being followed
+  pathIndex: number // Current position in path
 
   // Visual
   color: number
@@ -189,7 +189,7 @@ export function getEffectiveStat(process: Process, stat: keyof ProcessBaseStats)
 
 export function tickStatusEffects(process: Process): void {
   process.statusEffects = process.statusEffects.filter(effect => {
-    if (effect.duration === -1) return true  // Permanent
+    if (effect.duration === -1) return true // Permanent
     effect.duration--
     return effect.duration > 0
   })

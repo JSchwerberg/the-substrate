@@ -20,16 +20,19 @@ import {
 import { SeededRandom } from '../../utils/random'
 
 // Difficulty presets
-const DIFFICULTY_SETTINGS: Record<SectorDifficulty, {
-  corruptionDensity: number
-  malwareDensity: number
-  cacheMultiplier: number
-}> = {
+const DIFFICULTY_SETTINGS: Record<
+  SectorDifficulty,
+  {
+    corruptionDensity: number
+    malwareDensity: number
+    cacheMultiplier: number
+  }
+> = {
   trivial: { corruptionDensity: 0.05, malwareDensity: 0.02, cacheMultiplier: 1.5 },
-  easy: { corruptionDensity: 0.10, malwareDensity: 0.05, cacheMultiplier: 1.2 },
+  easy: { corruptionDensity: 0.1, malwareDensity: 0.05, cacheMultiplier: 1.2 },
   normal: { corruptionDensity: 0.15, malwareDensity: 0.08, cacheMultiplier: 1.0 },
-  hard: { corruptionDensity: 0.20, malwareDensity: 0.12, cacheMultiplier: 0.8 },
-  extreme: { corruptionDensity: 0.30, malwareDensity: 0.18, cacheMultiplier: 0.6 },
+  hard: { corruptionDensity: 0.2, malwareDensity: 0.12, cacheMultiplier: 0.8 },
+  extreme: { corruptionDensity: 0.3, malwareDensity: 0.18, cacheMultiplier: 0.6 },
 }
 
 export interface GeneratorOptions {

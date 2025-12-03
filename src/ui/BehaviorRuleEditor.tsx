@@ -75,50 +75,60 @@ export function BehaviorRuleEditor() {
   }
 
   return (
-    <div style={{
-      backgroundColor: '#1a1a2e',
-      border: '1px solid #333',
-      borderRadius: '4px',
-      padding: '12px',
-      width: '100%',
-      maxWidth: '800px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px',
-    }}>
-      {/* Header */}
-      <div style={{
+    <div
+      style={{
+        backgroundColor: '#1a1a2e',
+        border: '1px solid #333',
+        borderRadius: '4px',
+        padding: '12px',
+        width: '100%',
+        maxWidth: '800px',
         display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingBottom: '8px',
-        borderBottom: '1px solid #333',
-      }}>
-        <h3 style={{
-          margin: 0,
-          fontSize: '0.9rem',
-          fontWeight: 600,
-          color: '#7ecbff',
-          fontFamily: 'monospace',
-        }}>
+        flexDirection: 'column',
+        gap: '12px',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingBottom: '8px',
+          borderBottom: '1px solid #333',
+        }}
+      >
+        <h3
+          style={{
+            margin: 0,
+            fontSize: '0.9rem',
+            fontWeight: 600,
+            color: '#7ecbff',
+            fontFamily: 'monospace',
+          }}
+        >
           BEHAVIOR RULES
         </h3>
 
         {/* Template Selector */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-        }}>
-          <span style={{
-            fontSize: '0.7rem',
-            color: '#888',
-            fontFamily: 'monospace',
-          }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '0.7rem',
+              color: '#888',
+              fontFamily: 'monospace',
+            }}
+          >
             Template:
           </span>
           <select
-            onChange={(e) => handleTemplateChange(e.target.value as RuleTemplate)}
+            onChange={e => handleTemplateChange(e.target.value as RuleTemplate)}
             style={{
               padding: '4px 8px',
               backgroundColor: '#16213e',
@@ -142,22 +152,26 @@ export function BehaviorRuleEditor() {
       </div>
 
       {/* Rules List */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        maxHeight: '400px',
-        overflowY: 'auto',
-        padding: '4px',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          maxHeight: '400px',
+          overflowY: 'auto',
+          padding: '4px',
+        }}
+      >
         {sortedRules.length === 0 ? (
-          <div style={{
-            padding: '16px',
-            textAlign: 'center',
-            color: '#666',
-            fontSize: '0.75rem',
-            fontFamily: 'monospace',
-          }}>
+          <div
+            style={{
+              padding: '16px',
+              textAlign: 'center',
+              color: '#666',
+              fontSize: '0.75rem',
+              fontFamily: 'monospace',
+            }}
+          >
             No rules defined. Click "Add Rule" to create one.
           </div>
         ) : (
@@ -176,28 +190,32 @@ export function BehaviorRuleEditor() {
               }}
             >
               {/* Rule Header: Priority, Name, Toggle, Delete */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                paddingBottom: '6px',
-                borderBottom: '1px solid #333',
-              }}>
-                {/* Priority Badge */}
-                <div style={{
-                  minWidth: '24px',
-                  height: '24px',
-                  backgroundColor: '#1a1a2e',
-                  border: '1px solid #7ecbff',
-                  borderRadius: '3px',
+              <div
+                style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  color: '#7ecbff',
-                  fontFamily: 'monospace',
-                }}>
+                  gap: '8px',
+                  paddingBottom: '6px',
+                  borderBottom: '1px solid #333',
+                }}
+              >
+                {/* Priority Badge */}
+                <div
+                  style={{
+                    minWidth: '24px',
+                    height: '24px',
+                    backgroundColor: '#1a1a2e',
+                    border: '1px solid #7ecbff',
+                    borderRadius: '3px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    color: '#7ecbff',
+                    fontFamily: 'monospace',
+                  }}
+                >
                   {rule.priority}
                 </div>
 
@@ -206,9 +224,9 @@ export function BehaviorRuleEditor() {
                   <input
                     type="text"
                     value={editingNameValue}
-                    onChange={(e) => setEditingNameValue(e.target.value)}
+                    onChange={e => setEditingNameValue(e.target.value)}
                     onBlur={() => handleSaveEditName(rule.id)}
-                    onKeyDown={(e) => {
+                    onKeyDown={e => {
                       if (e.key === 'Enter') handleSaveEditName(rule.id)
                       if (e.key === 'Escape') handleCancelEditName()
                     }}
@@ -240,8 +258,8 @@ export function BehaviorRuleEditor() {
                       borderRadius: '3px',
                       transition: 'background-color 0.15s',
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1a2e'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#1a1a2e')}
+                    onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
                     {rule.name}
                   </div>
@@ -298,27 +316,31 @@ export function BehaviorRuleEditor() {
                 </div>
 
                 {/* Enable/Disable Toggle */}
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  gap: '4px',
-                }}>
+                <label
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    gap: '4px',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={rule.enabled}
-                    onChange={(e) => handleToggleEnabled(rule.id, e.target.checked)}
+                    onChange={e => handleToggleEnabled(rule.id, e.target.checked)}
                     style={{
                       width: '14px',
                       height: '14px',
                       cursor: 'pointer',
                     }}
                   />
-                  <span style={{
-                    fontSize: '0.65rem',
-                    color: '#888',
-                    fontFamily: 'monospace',
-                  }}>
+                  <span
+                    style={{
+                      fontSize: '0.65rem',
+                      color: '#888',
+                      fontFamily: 'monospace',
+                    }}
+                  >
                     ON
                   </span>
                 </label>
@@ -349,37 +371,43 @@ export function BehaviorRuleEditor() {
               </div>
 
               {/* Rule Logic: IF ... THEN ... */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '0.7rem',
-                fontFamily: 'monospace',
-              }}>
-                <span style={{
-                  color: '#4ecdc4',
-                  fontWeight: 700,
-                  minWidth: '20px',
-                }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '0.7rem',
+                  fontFamily: 'monospace',
+                }}
+              >
+                <span
+                  style={{
+                    color: '#4ecdc4',
+                    fontWeight: 700,
+                    minWidth: '20px',
+                  }}
+                >
                   IF
                 </span>
 
                 <ConditionDropdown
                   condition={rule.condition}
-                  onChange={(condition) => updateBehaviorRule(rule.id, { condition })}
+                  onChange={condition => updateBehaviorRule(rule.id, { condition })}
                 />
 
-                <span style={{
-                  color: '#ff6b6b',
-                  fontWeight: 700,
-                  minWidth: '32px',
-                }}>
+                <span
+                  style={{
+                    color: '#ff6b6b',
+                    fontWeight: 700,
+                    minWidth: '32px',
+                  }}
+                >
                   THEN
                 </span>
 
                 <ActionDropdown
                   action={rule.action}
-                  onChange={(action) => updateBehaviorRule(rule.id, { action })}
+                  onChange={action => updateBehaviorRule(rule.id, { action })}
                 />
               </div>
             </div>
@@ -403,11 +431,11 @@ export function BehaviorRuleEditor() {
           transition: 'all 0.15s',
           outline: 'none',
         }}
-        onMouseEnter={(e) => {
+        onMouseEnter={e => {
           e.currentTarget.style.backgroundColor = '#4ade8020'
           e.currentTarget.style.boxShadow = '0 0 8px #4ade8040'
         }}
-        onMouseLeave={(e) => {
+        onMouseLeave={e => {
           e.currentTarget.style.backgroundColor = '#16213e'
           e.currentTarget.style.boxShadow = 'none'
         }}

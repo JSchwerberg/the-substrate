@@ -28,6 +28,7 @@ export function GameCanvas() {
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
   const [view, setView] = useState<ViewState>({ offsetX: 0, offsetY: 0, scale: 1 })
   const [isDragging, setIsDragging] = useState(false)
+  const [isReady, setIsReady] = useState(false)
   const lastPointerPos = useRef<{ x: number; y: number } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const touchState = useRef<TouchState | null>(null)
@@ -118,7 +119,17 @@ export function GameCanvas() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentSector, processes, selectedProcessId, expeditionActive, generateNewSector, deployProcess, selectProcess, startExpedition, togglePause])
+  }, [
+    currentSector,
+    processes,
+    selectedProcessId,
+    expeditionActive,
+    generateNewSector,
+    deployProcess,
+    selectProcess,
+    startExpedition,
+    togglePause,
+  ])
 
   // Handle window resize
   useEffect(() => {
@@ -161,47 +172,53 @@ export function GameCanvas() {
   }, [currentSector])
 
   // Convert screen position to grid position
-  const screenToGrid = useCallback((screenX: number, screenY: number) => {
-    if (!containerRef.current) return null
+  const screenToGrid = useCallback(
+    (screenX: number, screenY: number) => {
+      if (!containerRef.current) return null
 
-    const rect = containerRef.current.getBoundingClientRect()
-    const localX = screenX - rect.left
-    const localY = screenY - rect.top
+      const rect = containerRef.current.getBoundingClientRect()
+      const localX = screenX - rect.left
+      const localY = screenY - rect.top
 
-    const worldX = (localX - baseOffsetX - view.offsetX) / view.scale
-    const worldY = (localY - baseOffsetY - view.offsetY) / view.scale
+      const worldX = (localX - baseOffsetX - view.offsetX) / view.scale
+      const worldY = (localY - baseOffsetY - view.offsetY) / view.scale
 
-    const gridX = Math.floor(worldX / TILE_SIZE)
-    const gridY = Math.floor(worldY / TILE_SIZE)
+      const gridX = Math.floor(worldX / TILE_SIZE)
+      const gridY = Math.floor(worldY / TILE_SIZE)
 
-    return { x: gridX, y: gridY }
-  }, [baseOffsetX, baseOffsetY, view])
+      return { x: gridX, y: gridY }
+    },
+    [baseOffsetX, baseOffsetY, view]
+  )
 
   // Handle click on canvas
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    if (!currentSector) return
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!currentSector) return
 
-    const gridPos = screenToGrid(e.clientX, e.clientY)
-    if (!gridPos) return
+      const gridPos = screenToGrid(e.clientX, e.clientY)
+      if (!gridPos) return
 
-    const tile = getTile(currentSector.grid, gridPos)
-    if (!tile) return
+      const tile = getTile(currentSector.grid, gridPos)
+      if (!tile) return
 
-    // Check if clicking on a process
-    const clickedProcess = processes.find(
-      p => p.position.x === gridPos.x && p.position.y === gridPos.y
-    )
+      // Check if clicking on a process
+      const clickedProcess = processes.find(
+        p => p.position.x === gridPos.x && p.position.y === gridPos.y
+      )
 
-    if (clickedProcess) {
-      selectProcess(clickedProcess.id)
-      return
-    }
+      if (clickedProcess) {
+        selectProcess(clickedProcess.id)
+        return
+      }
 
-    // If a process is selected and tile is walkable, move there
-    if (selectedProcessId && isWalkable(tile) && tile.visibility !== 'hidden') {
-      moveSelectedProcess(gridPos)
-    }
-  }, [currentSector, processes, selectedProcessId, screenToGrid, selectProcess, moveSelectedProcess])
+      // If a process is selected and tile is walkable, move there
+      if (selectedProcessId && isWalkable(tile) && tile.visibility !== 'hidden') {
+        moveSelectedProcess(gridPos)
+      }
+    },
+    [currentSector, processes, selectedProcessId, screenToGrid, selectProcess, moveSelectedProcess]
+  )
 
   // Touch/mouse handlers for panning
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
@@ -209,20 +226,23 @@ export function GameCanvas() {
     lastPointerPos.current = { x: e.clientX, y: e.clientY }
   }, [])
 
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging || !lastPointerPos.current) return
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!isDragging || !lastPointerPos.current) return
 
-    const deltaX = e.clientX - lastPointerPos.current.x
-    const deltaY = e.clientY - lastPointerPos.current.y
+      const deltaX = e.clientX - lastPointerPos.current.x
+      const deltaY = e.clientY - lastPointerPos.current.y
 
-    setView(prev => ({
-      ...prev,
-      offsetX: prev.offsetX + deltaX,
-      offsetY: prev.offsetY + deltaY,
-    }))
+      setView(prev => ({
+        ...prev,
+        offsetX: prev.offsetX + deltaX,
+        offsetY: prev.offsetY + deltaY,
+      }))
 
-    lastPointerPos.current = { x: e.clientX, y: e.clientY }
-  }, [isDragging])
+      lastPointerPos.current = { x: e.clientX, y: e.clientY }
+    },
+    [isDragging]
+  )
 
   const handlePointerUp = useCallback(() => {
     setIsDragging(false)
@@ -249,15 +269,18 @@ export function GameCanvas() {
     return Math.sqrt(dx * dx + dy * dy)
   }
 
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (e.touches.length === 2) {
-      e.preventDefault()
-      touchState.current = {
-        initialDistance: getTouchDistance(e.touches),
-        initialScale: view.scale,
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault()
+        touchState.current = {
+          initialDistance: getTouchDistance(e.touches),
+          initialScale: view.scale,
+        }
       }
-    }
-  }, [view.scale])
+    },
+    [view.scale]
+  )
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && touchState.current) {
@@ -274,6 +297,14 @@ export function GameCanvas() {
 
   const handleTouchEnd = useCallback(() => {
     touchState.current = null
+  }, [])
+
+  // Handle PixiJS Application initialization
+  const handlePixiInit = useCallback(() => {
+    // Use requestAnimationFrame to ensure PixiJS is fully initialized
+    requestAnimationFrame(() => {
+      setIsReady(true)
+    })
   }, [])
 
   return (
@@ -297,19 +328,16 @@ export function GameCanvas() {
         antialias={false}
         resolution={window.devicePixelRatio || 1}
         autoDensity={true}
+        onInit={handlePixiInit}
       >
         <pixiContainer
           x={baseOffsetX + view.offsetX}
           y={baseOffsetY + view.offsetY}
           scale={view.scale}
         >
-          {currentSector && (
+          {isReady && currentSector && (
             <>
-              <Grid
-                key={currentSector.config.id}
-                grid={currentSector.grid}
-                tileSize={TILE_SIZE}
-              />
+              <Grid key={currentSector.config.id} grid={currentSector.grid} tileSize={TILE_SIZE} />
               <MalwareLayer
                 malware={malware}
                 tileSize={TILE_SIZE}

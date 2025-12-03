@@ -130,11 +130,11 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - [x] Add ESLint + Prettier
 - [x] Fix unused Legend import
 
-**Week 2: Performance & Security**
-- [ ] Add Immer for grid cloning (2h)
-- [ ] Add React.memo to UI components (4h)
-- [ ] Remove CSP 'unsafe-eval' (2h)
-- [ ] Add integer overflow protection (2h)
+**Week 2: Performance & Security** ✓ (Completed 2025-12-03)
+- [x] Add Immer for grid cloning (structural sharing for fog of war updates)
+- [x] Add React.memo to UI components (13 components memoized)
+- [x] Remove CSP 'unsafe-eval' (Sprint 1)
+- [x] Add integer overflow protection (Sprint 1)
 
 **Week 3-4: Testing**
 - [ ] TickSystem tests - 50 tests (8h)
@@ -179,14 +179,13 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 | quality | ✅ Passing | Type check, lint, format, tests |
 | security | ✅ Passing | npm audit |
 | build | ✅ Passing | Vite build + artifact upload |
+| deploy | ✅ Configured | GitHub Pages deployment (main branch only) |
 
 **Tools Configured:**
 - ESLint 9 + typescript-eslint
 - Prettier
 - Vitest with coverage
-
-**Pending:**
-- [ ] Set up GitHub Pages deployment (auto-deploy on push to main)
+- GitHub Pages deployment (auto-deploy on push to main)
 
 ---
 

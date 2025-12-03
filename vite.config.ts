@@ -5,6 +5,7 @@ import { resolve } from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: process.env.GITHUB_ACTIONS ? '/the-substrate/' : '/',
   plugins: [
     react(),
     VitePWA({
@@ -18,7 +19,7 @@ export default defineConfig({
         background_color: '#0f0f1a',
         display: 'standalone',
         orientation: 'any',
-        start_url: '/',
+        start_url: './',
         icons: [
           {
             src: '/icon-192.png',

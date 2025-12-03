@@ -44,71 +44,62 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 
 ---
 
-## Sprint 5: Design Alignment + gameStore Split
+## Sprint 5: Design Alignment + gameStore Split ✓ (2025-12-03)
 
-### Phase 5A: Balance & Victory (Priority)
+### Phase 5A: Balance & Victory ✓
 
 **Objective:** Make the core loop playable and satisfying
 
-1. **Worm Replication Balance**
-   - [ ] Increase replication cooldown: 5 → 10 ticks (5 seconds)
-   - [ ] Add max worm cap per sector: 8 worms (Easy), 12 (Normal), 16 (Hard)
-   - [ ] Update GameConfig.ts with WORM.MAX_COUNT constant
-   - [ ] Modify wormReplicationPhase to check cap before spawning
+1. **Worm Replication Balance** ✓
+   - [x] Increase replication cooldown: 5 → 10 ticks (5 seconds)
+   - [x] Add max worm cap per sector: 8 worms (Easy), 12 (Normal), 16 (Hard)
+   - [x] Update GameConfig.ts with WORM.MAX_COUNT constant
+   - [x] Modify wormReplicationPhase to check cap before spawning
 
-2. **Victory Condition: Exit Point**
-   - [ ] Add `exitPoint: GridPosition` to Sector model
-   - [ ] Generate exit point in SectorGenerator (opposite corner from spawn)
-   - [ ] Render exit point on grid (distinct visual)
-   - [ ] Add victory check: process reaches exit tile
-   - [ ] Optional: require minimum caches collected for victory
+2. **Victory Condition: Exit Point** ✓
+   - [x] Add `exitPoints: GridPosition[]` to Sector model
+   - [x] Generate exit points in SectorGenerator (opposite corner from spawn)
+   - [x] Render exit points on grid (distinct visual)
+   - [x] Add victory check: process reaches exit tile
 
-3. **Mid-Expedition Deployment (Energy Cost)**
-   - [ ] Change deployProcess to cost energy when expeditionActive is true
-   - [ ] Keep cycles cost for pre-expedition deployment
-   - [ ] Add energy regeneration: +5 energy per tick (capped at max)
-   - [ ] Update DeploymentPanel to show energy cost during expedition
+3. **Mid-Expedition Deployment (Energy Cost)** ✓
+   - [x] Change deployProcess to cost energy when expeditionActive is true
+   - [x] Keep cycles cost for pre-expedition deployment
+   - [x] Add energy regeneration: +5 energy per tick (capped at max)
+   - [x] Update DeploymentPanel to show energy cost during expedition
+   - [x] Exponential scaling: 1.5x per deployment (30 → 45 → 68 → ...)
 
-### Phase 5B: gameStore Split (Phases 2-5)
+### Phase 5B: gameStore Split ✓
 
 **Objective:** Complete modular store architecture
 
-4. **EntitySlice** (processes, malware, selection)
-   - [ ] Extract entity state and basic actions
-   - [ ] Keep deployProcess in main store (cross-slice dependency)
+4. **EntitySlice** (48 lines) ✓
+   - [x] Extract processes, malware, selectedProcessId
+   - [x] Keep deployProcess in main store (cross-slice orchestration)
 
-5. **GridSlice** (sector, grid, visibility)
-   - [ ] Extract sector management
-   - [ ] Add exitPoint to sector state
+5. **GridSlice** (70 lines) ✓
+   - [x] Extract currentSector, updateVisibility
+   - [x] Uses Immer for efficient fog updates
 
-6. **ExpeditionSlice** (active, result, score, tick, combatLog)
-   - [ ] Extract expedition orchestration
-   - [ ] Keep tick() as main orchestrator
+6. **ExpeditionSlice** (109 lines) ✓
+   - [x] Extract expedition state, tick count, combat log
+   - [x] Keep tick() as main orchestrator
 
-7. **ProgressionSlice** (upgrades, persistentData, save/load)
-   - [ ] Extract progression and persistence
-   - [ ] Move claimExpeditionRewards logic
+7. **ProgressionSlice** (176 lines) ✓
+   - [x] Extract persistentData, upgrades, save/load
+   - [x] Moved claimExpeditionRewards logic
 
-### Phase 5C: Energy System
+**Result:** gameStore reduced from 588 → 333 lines. 7 slices total (1043 lines with types).
+
+### Phase 5C: Energy System ✓
 
 **Objective:** Make energy meaningful per design doc
 
-8. **Energy Mechanics**
-   - [ ] Energy regeneration during expedition (+5/tick)
-   - [ ] Energy cost for mid-expedition deployment (20 for Scout, 30 for Purifier)
-   - [ ] Display energy in ResourcePanel with regeneration indicator
-   - [ ] Add "low energy" warning when < 20
-
-### Estimated Effort
-
-| Task | Effort | Risk |
-|------|--------|------|
-| Worm balance (cooldown + cap) | 1h | Low |
-| Victory condition (exit point) | 3h | Medium |
-| Energy-based deployment | 2h | Low |
-| gameStore Phases 2-5 | 8h | Medium |
-| Energy regeneration system | 2h | Low |
-| **Total** | **16h** | |
+8. **Energy Mechanics** ✓
+   - [x] Energy regeneration during expedition (+5/tick)
+   - [x] Energy cost for mid-expedition deployment (30 Scout, 50 Purifier, 1.5x scaling)
+   - [x] Display energy cost in DeploymentPanel during expedition
+   - [ ] Add "low energy" warning when < 30 (future enhancement)
 
 ---
 
@@ -193,7 +184,7 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - [ ] Units cannot move after victory (tick loop stops)
 - [ ] No pathfinding cache (performance)
 - [ ] No error boundaries in React components
-- [ ] 551-line gameStore still large → Sprint 5
+- [x] ~~551-line gameStore still large~~ → Fixed: 333 lines + 7 slices
 
 ### Low Priority (P3)
 - [ ] Defeat screen redundant clicks (Claim Rewards → New Expedition could be one action)

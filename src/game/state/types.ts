@@ -92,3 +92,66 @@ export interface ResourceSlice {
   spendResources: (cost: Partial<Resources>) => boolean
   addResources: (amount: Partial<Resources>) => void
 }
+
+/**
+ * Entity slice - manages processes, malware, and selection
+ */
+export interface EntitySlice {
+  processes: import('@core/models/process').Process[]
+  malware: import('@core/models/malware').Malware[]
+  selectedProcessId: string | null
+  setProcesses: (processes: import('@core/models/process').Process[]) => void
+  setMalware: (malware: import('@core/models/malware').Malware[]) => void
+  selectProcess: (processId: string | null) => void
+  addProcess: (process: import('@core/models/process').Process) => void
+  clearEntities: () => void
+}
+
+/**
+ * Grid slice - manages sector and visibility
+ */
+export interface GridSlice {
+  currentSector: import('@core/models/grid').Sector | null
+  setSector: (sector: import('@core/models/grid').Sector | null) => void
+  setSectorStatus: (status: 'active' | 'success' | 'failed') => void
+  updateGrid: (grid: import('@core/models/grid').Grid) => void
+  updateVisibility: () => void
+}
+
+/**
+ * Expedition slice - manages expedition state and tick
+ */
+export interface ExpeditionSlice {
+  expeditionActive: boolean
+  expeditionResult: ExpeditionResult
+  expeditionScore: ExpeditionScore
+  midExpeditionDeployCount: number
+  currentTick: number
+  isPaused: boolean
+  combatLog: string[]
+  startExpedition: () => void
+  endExpedition: (result: ExpeditionResult) => void
+  setExpeditionResult: (result: ExpeditionResult) => void
+  updateScore: (updates: Partial<ExpeditionScore>) => void
+  incrementScore: (deltas: Partial<ExpeditionScore>) => void
+  incrementDeployCount: () => void
+  incrementTick: () => void
+  togglePause: () => void
+  setPaused: (paused: boolean) => void
+  addCombatLog: (entry: string) => void
+  setCombatLog: (log: string[]) => void
+  resetExpedition: () => void
+}
+
+/**
+ * Progression slice - manages persistent data and upgrades
+ */
+export interface ProgressionSlice {
+  persistentData: PersistentData
+  upgrades: Upgrades
+  purchaseUpgrade: (upgradeType: UpgradeType) => boolean
+  getUpgradeCost: (upgradeType: UpgradeType) => number
+  claimExpeditionRewards: () => ExpeditionRewards
+  loadSavedData: () => Promise<void>
+  autoSaveProgression: () => Promise<void>
+}

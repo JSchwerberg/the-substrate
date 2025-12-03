@@ -117,17 +117,48 @@ export function createMockGameState(overrides?: Partial<GameState>): GameState {
   // Add action stubs for type compatibility
   return {
     ...serializableState,
+    // Orchestration actions
     generateNewSector: () => {},
-    startExpedition: () => {},
-    endExpedition: () => {},
     deployProcess: () => {},
-    selectProcess: () => {},
     moveSelectedProcess: () => {},
     tick: () => {},
-    togglePause: () => {},
-    updateVisibility: () => {},
+    // Resource slice
     spendResources: () => false,
     addResources: () => {},
+    // Config slice
+    setDifficulty: () => {},
+    // Behavior slice
+    setBehaviorRules: () => {},
+    loadRuleTemplate: () => {},
+    updateBehaviorRule: () => {},
+    deleteBehaviorRule: () => {},
+    addBehaviorRule: () => {},
+    reorderBehaviorRules: () => {},
+    // Entity slice
+    setProcesses: () => {},
+    setMalware: () => {},
+    selectProcess: () => {},
+    addProcess: () => {},
+    clearEntities: () => {},
+    // Grid slice
+    setSector: () => {},
+    setSectorStatus: () => {},
+    updateGrid: () => {},
+    updateVisibility: () => {},
+    // Expedition slice
+    startExpedition: () => {},
+    endExpedition: () => {},
+    setExpeditionResult: () => {},
+    updateScore: () => {},
+    incrementScore: () => {},
+    incrementDeployCount: () => {},
+    incrementTick: () => {},
+    togglePause: () => {},
+    setPaused: () => {},
+    addCombatLog: () => {},
+    setCombatLog: () => {},
+    resetExpedition: () => {},
+    // Progression slice
     purchaseUpgrade: () => false,
     getUpgradeCost: () => 0,
     claimExpeditionRewards: () => ({
@@ -137,13 +168,6 @@ export function createMockGameState(overrides?: Partial<GameState>): GameState {
       survivalBonus: 0,
       totalReward: 0,
     }),
-    setDifficulty: () => {},
-    setBehaviorRules: () => {},
-    loadRuleTemplate: () => {},
-    updateBehaviorRule: () => {},
-    deleteBehaviorRule: () => {},
-    addBehaviorRule: () => {},
-    reorderBehaviorRules: () => {},
     loadSavedData: async () => {},
     autoSaveProgression: async () => {},
   } as GameState

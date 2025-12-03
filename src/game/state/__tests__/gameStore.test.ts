@@ -400,22 +400,22 @@ describe('gameStore', () => {
     })
 
     it('endExpedition with success should end expedition', () => {
-      useGameStore.getState().endExpedition(true)
+      useGameStore.getState().endExpedition('victory')
 
       expect(useGameStore.getState().expeditionActive).toBe(false)
-      // endExpedition sets sector.status, not expeditionResult
+      expect(useGameStore.getState().expeditionResult).toBe('victory')
     })
 
     it('endExpedition with failure should end expedition', () => {
-      useGameStore.getState().endExpedition(false)
+      useGameStore.getState().endExpedition('defeat')
 
       expect(useGameStore.getState().expeditionActive).toBe(false)
-      // endExpedition sets sector.status, not expeditionResult
+      expect(useGameStore.getState().expeditionResult).toBe('defeat')
     })
 
     it('endExpedition should pause the game', () => {
       useGameStore.getState().startExpedition()
-      useGameStore.getState().endExpedition(true)
+      useGameStore.getState().endExpedition('victory')
 
       expect(useGameStore.getState().isPaused).toBe(true)
     })

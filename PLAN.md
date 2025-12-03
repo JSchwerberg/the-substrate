@@ -136,11 +136,12 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - [x] Remove CSP 'unsafe-eval' (Sprint 1)
 - [x] Add integer overflow protection (Sprint 1)
 
-**Week 3-4: Testing**
-- [ ] TickSystem tests - 50 tests (8h)
-- [ ] gameStore tests - 80 tests (10h)
-- [ ] Pathfinding tests - 30 tests (4h)
-- [ ] MalwareAI tests - 40 tests (6h)
+**Week 3-4: Testing** ✓ (Completed 2025-12-03)
+- [x] TickSystem tests - 78 tests
+- [x] gameStore tests - 104 tests
+- [x] Pathfinding tests - 82 tests
+- [x] MalwareAI tests - 75 tests
+- **Total: 376 tests (339 new)**
 
 **Week 5-6: Architecture Cleanup**
 - [ ] Remove/integrate Expedition model (4h)
@@ -148,16 +149,18 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - [ ] Split gameStore into domain stores (8h)
 - [ ] Add README.md and developer docs (8h)
 
-### Test Coverage Gap
+### Test Coverage (Updated 2025-12-03)
 
 | Category | Current | Target |
 |----------|---------|--------|
-| Core Systems | 0% | 80% |
-| Game State | 0% | 75% |
-| Models | 0% | 70% |
+| TickSystem | 99% | 80% ✓ |
+| Pathfinding | 97% | 80% ✓ |
+| gameStore | 90% | 75% ✓ |
+| MalwareAI | 75% | 80% |
+| Models | 46% | 70% |
 | UI Components | 0% | 40% |
 | Persistence | 78% | 85% |
-| **Overall** | **~2.5%** | **70%** |
+| **Overall** | **~53%** | **70%** |
 
 ### Performance Optimizations
 

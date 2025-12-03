@@ -2,6 +2,7 @@
  * DifficultySelector - Select expedition difficulty level
  */
 
+import { memo } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 import type { Difficulty } from '@game/state/gameStore'
 
@@ -38,7 +39,7 @@ const DIFFICULTY_CONFIG: Record<
   },
 }
 
-export function DifficultySelector() {
+export const DifficultySelector = memo(function DifficultySelector() {
   const selectedDifficulty = useGameStore(state => state.selectedDifficulty)
   const setDifficulty = useGameStore(state => state.setDifficulty)
   const expeditionActive = useGameStore(state => state.expeditionActive)
@@ -202,4 +203,4 @@ export function DifficultySelector() {
       </div>
     </div>
   )
-}
+})

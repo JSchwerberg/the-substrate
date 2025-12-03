@@ -2,11 +2,13 @@
  * LoadingScreen - Shows while game initializes
  */
 
+import { memo } from 'react'
+
 interface LoadingScreenProps {
   isLoading: boolean
 }
 
-export function LoadingScreen({ isLoading }: LoadingScreenProps) {
+export const LoadingScreen = memo(function LoadingScreen({ isLoading }: LoadingScreenProps) {
   if (!isLoading) return null
 
   return (
@@ -77,4 +79,4 @@ export function LoadingScreen({ isLoading }: LoadingScreenProps) {
       `}</style>
     </div>
   )
-}
+})

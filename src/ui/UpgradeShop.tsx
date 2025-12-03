@@ -2,6 +2,7 @@
  * UpgradeShop - Purchase permanent upgrades using earned Data
  */
 
+import { memo } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 import {
   getAllUpgradeTypes,
@@ -17,7 +18,7 @@ interface UpgradeShopProps {
   onClose: () => void
 }
 
-export function UpgradeShop({ onClose }: UpgradeShopProps) {
+export const UpgradeShop = memo(function UpgradeShop({ onClose }: UpgradeShopProps) {
   const persistentData = useGameStore(state => state.persistentData)
   const upgrades = useGameStore(state => state.upgrades)
   const purchaseUpgrade = useGameStore(state => state.purchaseUpgrade)
@@ -401,4 +402,4 @@ export function UpgradeShop({ onClose }: UpgradeShopProps) {
       </div>
     </div>
   )
-}
+})

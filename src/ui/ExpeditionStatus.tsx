@@ -2,9 +2,10 @@
  * ExpeditionStatus - Top bar showing expedition state
  */
 
+import { memo } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 
-export function ExpeditionStatus() {
+export const ExpeditionStatus = memo(function ExpeditionStatus() {
   const currentTick = useGameStore(state => state.currentTick)
   const processes = useGameStore(state => state.processes)
   const malware = useGameStore(state => state.malware)
@@ -233,4 +234,4 @@ export function ExpeditionStatus() {
       )}
     </>
   )
-}
+})

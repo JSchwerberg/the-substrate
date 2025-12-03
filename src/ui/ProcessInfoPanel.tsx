@@ -2,10 +2,11 @@
  * ProcessInfoPanel - Display selected process details
  */
 
+import { memo } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 import { ARCHETYPES } from '@core/models/process'
 
-export function ProcessInfoPanel() {
+export const ProcessInfoPanel = memo(function ProcessInfoPanel() {
   const processes = useGameStore(state => state.processes)
   const selectedProcessId = useGameStore(state => state.selectedProcessId)
 
@@ -261,4 +262,4 @@ export function ProcessInfoPanel() {
       )}
     </div>
   )
-}
+})

@@ -2,10 +2,10 @@
  * CombatLog - Scrollable combat log display
  */
 
+import { memo, useEffect, useRef } from 'react'
 import { useGameStore } from '@game/state/gameStore'
-import { useEffect, useRef } from 'react'
 
-export function CombatLog() {
+export const CombatLog = memo(function CombatLog() {
   const combatLog = useGameStore(state => state.combatLog)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -117,4 +117,4 @@ export function CombatLog() {
       `}</style>
     </div>
   )
-}
+})

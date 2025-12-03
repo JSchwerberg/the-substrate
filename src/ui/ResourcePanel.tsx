@@ -2,9 +2,10 @@
  * ResourcePanel - Displays current resources with capacity bars
  */
 
+import { memo } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 
-export function ResourcePanel() {
+export const ResourcePanel = memo(function ResourcePanel() {
   const resources = useGameStore(state => state.resources)
   const capacity = useGameStore(state => state.capacity)
 
@@ -108,4 +109,4 @@ export function ResourcePanel() {
       </div>
     </div>
   )
-}
+})

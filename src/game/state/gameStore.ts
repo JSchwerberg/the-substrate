@@ -4,6 +4,7 @@
 
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
+import { produce } from 'immer'
 import { Sector, Grid, GridPosition, getTile } from '@core/models/grid'
 import { Process, ProcessArchetype, createProcess } from '@core/models/process'
 import { Malware, MalwareType, createMalware } from '@core/models/malware'
@@ -29,13 +30,15 @@ import {
   SAFE_LIMITS,
 } from '@core/constants/GameConfig'
 
-// Deep clone a grid to ensure immutability
-function cloneGrid(grid: Grid): Grid {
-  return {
-    width: grid.width,
-    height: grid.height,
-    tiles: grid.tiles.map(row => row.map(tile => ({ ...tile, entityIds: [...tile.entityIds] }))),
-  }
+// Create a new immutable grid with fog of war updates using Immer
+// Uses structural sharing - only changed tiles get new references
+function updateGridFog(
+  grid: Grid,
+  viewers: Array<{ position: GridPosition; sightRange: number }>
+): Grid {
+  return produce(grid, draft => {
+    updateFogOfWar(draft, viewers)
+  })
 }
 
 // Clamp a value to safe integer bounds (prevents overflow)
@@ -459,9 +462,8 @@ export const useGameStore = create<GameState>()(
           sightRange: p.stats.sightRange,
         }))
 
-      // Clone the grid to ensure immutability and trigger re-render
-      const newGrid = cloneGrid(currentSector.grid)
-      updateFogOfWar(newGrid, viewers)
+      // Use Immer for efficient structural sharing - only changed tiles get new references
+      const newGrid = updateGridFog(currentSector.grid, viewers)
 
       // Create new sector with new grid reference
       set({

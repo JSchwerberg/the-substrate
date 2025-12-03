@@ -2,7 +2,7 @@
  * Legend - Shows game symbols and their meanings
  */
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 
 interface LegendItem {
   name: string
@@ -31,7 +31,7 @@ const MALWARE_LEGEND: LegendItem[] = [
   { name: 'Logic Bomb', color: '#ef4444', description: 'Explodes on trigger' },
 ]
 
-export function Legend() {
+export const Legend = memo(function Legend() {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return (
@@ -92,9 +92,15 @@ export function Legend() {
       )}
     </div>
   )
-}
+})
 
-function LegendSection({ title, items }: { title: string; items: LegendItem[] }) {
+const LegendSection = memo(function LegendSection({
+  title,
+  items,
+}: {
+  title: string
+  items: LegendItem[]
+}) {
   return (
     <div>
       <div
@@ -158,4 +164,4 @@ function LegendSection({ title, items }: { title: string; items: LegendItem[] })
       </div>
     </div>
   )
-}
+})

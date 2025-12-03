@@ -2,6 +2,7 @@
  * ConditionDropdown - Dropdown for selecting and configuring behavior conditions
  */
 
+import { memo } from 'react'
 import { ConditionType, Condition } from '@core/models/behavior'
 
 interface ConditionDropdownProps {
@@ -36,7 +37,10 @@ const CONDITION_METADATA: Record<
   has_action_points: { label: 'Has Action Points' },
 }
 
-export function ConditionDropdown({ condition, onChange }: ConditionDropdownProps) {
+export const ConditionDropdown = memo(function ConditionDropdown({
+  condition,
+  onChange,
+}: ConditionDropdownProps) {
   const metadata = CONDITION_METADATA[condition.type]
 
   const handleTypeChange = (newType: ConditionType) => {
@@ -180,4 +184,4 @@ export function ConditionDropdown({ condition, onChange }: ConditionDropdownProp
       )}
     </div>
   )
-}
+})

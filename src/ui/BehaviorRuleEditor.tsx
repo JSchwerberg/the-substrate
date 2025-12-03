@@ -2,13 +2,13 @@
  * BehaviorRuleEditor - Main rule editor panel for configuring process automation
  */
 
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 import { BehaviorRule, RuleTemplate, createRule } from '@core/models/behavior'
 import { ConditionDropdown } from './ConditionDropdown'
 import { ActionDropdown } from './ActionDropdown'
 
-export function BehaviorRuleEditor() {
+export const BehaviorRuleEditor = memo(function BehaviorRuleEditor() {
   const behaviorRules = useGameStore(state => state.behaviorRules)
   const loadRuleTemplate = useGameStore(state => state.loadRuleTemplate)
   const updateBehaviorRule = useGameStore(state => state.updateBehaviorRule)
@@ -444,4 +444,4 @@ export function BehaviorRuleEditor() {
       </button>
     </div>
   )
-}
+})

@@ -2,6 +2,7 @@
  * ActionDropdown - Dropdown for selecting behavior actions
  */
 
+import { memo } from 'react'
 import { ActionType, Action } from '@core/models/behavior'
 
 interface ActionDropdownProps {
@@ -33,7 +34,10 @@ const ACTION_CATEGORIES = {
   ],
 }
 
-export function ActionDropdown({ action, onChange }: ActionDropdownProps) {
+export const ActionDropdown = memo(function ActionDropdown({
+  action,
+  onChange,
+}: ActionDropdownProps) {
   const handleChange = (newType: ActionType) => {
     onChange({ type: newType })
   }
@@ -77,4 +81,4 @@ export function ActionDropdown({ action, onChange }: ActionDropdownProps) {
       </select>
     </div>
   )
-}
+})

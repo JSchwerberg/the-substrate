@@ -4,11 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Status
 
-**Current Phase:** MVP Complete (Phases 1-6) with Sprint 1 fixes applied
+**Current Phase:** MVP Complete (Phases 1-6) with Sprint 1-2 optimizations applied
 **Overall Grade:** B (78/100) from comprehensive review (2025-12-03)
 **Test Coverage:** ~2.5% (critical gap - see PLAN.md for testing roadmap)
 
-### Recent Changes (Sprint 1 - 2025-12-03)
+### Recent Changes (Sprint 2 - 2025-12-03)
+- Added Immer for grid cloning (structural sharing reduces memory/CPU)
+- Added React.memo to all 13 UI components (prevents unnecessary re-renders)
+
+### Previous Changes (Sprint 1 - 2025-12-03)
 - Removed `unsafe-eval` from CSP (security fix)
 - Added integer overflow protection for rewards (`SAFE_LIMITS` in GameConfig.ts)
 - Fixed units unable to move after victory
@@ -68,7 +72,8 @@ The tick-based game loop runs in `gameStore.ts` at 500ms intervals:
 
 ### Key Patterns
 - **Immutable state updates** - Always create new objects/arrays for Zustand, never mutate
-- **Deep clone grid** before fog of war updates to trigger React re-renders
+- **Immer for grid updates** - Uses structural sharing (only changed tiles get new references)
+- **React.memo on all UI components** - Prevents unnecessary re-renders from parent updates
 - **Two-layer visibility**: Tile fog of war (hidden/revealed/visible) + Malware `isRevealed` (trojans hide until triggered)
 
 ### Entity Types

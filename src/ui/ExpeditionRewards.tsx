@@ -2,7 +2,7 @@
  * ExpeditionRewards - Modal showing reward breakdown after expedition ends
  */
 
-import React from 'react'
+import { memo, useState } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 import { calculateExpeditionRewards } from '@game/state/progressionHelpers'
 import { GeneratorOptions } from '@core/generation/SectorGenerator'
@@ -11,17 +11,17 @@ interface ExpeditionRewardsProps {
   onNewExpedition: () => void
 }
 
-export function ExpeditionRewards({ onNewExpedition }: ExpeditionRewardsProps) {
+export const ExpeditionRewards = memo(function ExpeditionRewards({
+  onNewExpedition,
+}: ExpeditionRewardsProps) {
   const expeditionResult = useGameStore(state => state.expeditionResult)
   const expeditionScore = useGameStore(state => state.expeditionScore)
   const selectedDifficulty = useGameStore(state => state.selectedDifficulty)
   const claimExpeditionRewards = useGameStore(state => state.claimExpeditionRewards)
   const generateNewSector = useGameStore(state => state.generateNewSector)
 
-  const [claimed, setClaimed] = React.useState(false)
-  const [rewards, setRewards] = React.useState<ReturnType<
-    typeof calculateExpeditionRewards
-  > | null>(null)
+  const [claimed, setClaimed] = useState(false)
+  const [rewards, setRewards] = useState<ReturnType<typeof calculateExpeditionRewards> | null>(null)
 
   // Don't show if expedition is still active
   if (expeditionResult === 'active') {
@@ -350,4 +350,4 @@ export function ExpeditionRewards({ onNewExpedition }: ExpeditionRewardsProps) {
       </div>
     </div>
   )
-}
+})

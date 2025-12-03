@@ -2,10 +2,11 @@
  * DeploymentPanel - Unit deployment UI with archetype preview
  */
 
+import { memo } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 import { ARCHETYPES, ProcessArchetype } from '@core/models/process'
 
-export function DeploymentPanel() {
+export const DeploymentPanel = memo(function DeploymentPanel() {
   const deployProcess = useGameStore(state => state.deployProcess)
   const expeditionActive = useGameStore(state => state.expeditionActive)
 
@@ -193,4 +194,4 @@ export function DeploymentPanel() {
       )}
     </div>
   )
-}
+})

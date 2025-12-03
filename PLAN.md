@@ -181,11 +181,11 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 ### Critical (P0)
 - [x] ~~Minimal test coverage~~ → Fixed: 376 tests, ~53% coverage
 - [x] ~~BehaviorSystem not integrated~~ → Fixed: wired into tick loop
-- [ ] Victory condition is "kill all" not strategic objective → Sprint 5
-- [ ] Worm replication too fast (5-tick cooldown) → Sprint 5
+- [x] ~~Victory condition is "kill all" not strategic objective~~ → Fixed: exit point victory
+- [x] ~~Worm replication too fast (5-tick cooldown)~~ → Fixed: 10-tick + max cap
 
 ### High Priority (P1)
-- [ ] Energy resource unused (no regeneration, no cost) → Sprint 5
+- [x] ~~Energy resource unused (no regeneration, no cost)~~ → Fixed: regen + deployment cost
 - [ ] Memory resource unused (no capacity gating) → Future
 - [ ] No intervention system during expeditions → Sprint 5 partial
 
@@ -196,6 +196,7 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - [ ] 551-line gameStore still large → Sprint 5
 
 ### Low Priority (P3)
+- [ ] Defeat screen redundant clicks (Claim Rewards → New Expedition could be one action)
 - [ ] Legend for tile colors/symbols
 - [ ] Service worker cache versioning
 - [ ] Cross-tab state synchronization

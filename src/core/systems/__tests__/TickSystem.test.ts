@@ -32,6 +32,7 @@ function createTestContext(overrides?: Partial<TickContext>): TickContext {
     },
     behaviorRules: [],
     currentTick: 0,
+    difficulty: 'normal',
     ...overrides,
   }
 }
@@ -552,7 +553,7 @@ describe('wormReplicationPhase', () => {
     worm.abilityCooldown = 0
     worm.status = 'active'
 
-    const result = wormReplicationPhase([], [worm], grid)
+    const result = wormReplicationPhase([], [worm], grid, 'normal')
 
     expect(result.malware).toHaveLength(2)
     expect(result.logs[0]).toContain('replicates')
@@ -564,7 +565,7 @@ describe('wormReplicationPhase', () => {
     worm.abilityCooldown = 0
     worm.status = 'active'
 
-    const result = wormReplicationPhase([], [worm], grid)
+    const result = wormReplicationPhase([], [worm], grid, 'normal')
 
     expect(result.malware[0]?.abilityCooldown).toBeGreaterThan(0)
   })
@@ -575,7 +576,7 @@ describe('wormReplicationPhase', () => {
     worm.abilityCooldown = 2
     worm.status = 'active'
 
-    const result = wormReplicationPhase([], [worm], grid)
+    const result = wormReplicationPhase([], [worm], grid, 'normal')
 
     expect(result.malware).toHaveLength(1)
   })
@@ -586,7 +587,7 @@ describe('wormReplicationPhase', () => {
     worm.status = 'destroyed'
     worm.abilityCooldown = 0
 
-    const result = wormReplicationPhase([], [worm], grid)
+    const result = wormReplicationPhase([], [worm], grid, 'normal')
 
     expect(result.malware).toHaveLength(1)
   })
@@ -596,7 +597,7 @@ describe('wormReplicationPhase', () => {
     const trojan = createMalware('trojan', { x: 5, y: 5 })
     trojan.abilityCooldown = 0
 
-    const result = wormReplicationPhase([], [trojan], grid)
+    const result = wormReplicationPhase([], [trojan], grid, 'normal')
 
     expect(result.malware).toHaveLength(1)
   })
@@ -613,7 +614,7 @@ describe('wormReplicationPhase', () => {
     worm.abilityCooldown = 0
     worm.status = 'active'
 
-    const result = wormReplicationPhase([], [worm], grid)
+    const result = wormReplicationPhase([], [worm], grid, 'normal')
 
     expect(result.malware).toHaveLength(1)
   })
@@ -630,7 +631,12 @@ describe('wormReplicationPhase', () => {
     worm.abilityCooldown = 0
     worm.status = 'active'
 
-    const result = wormReplicationPhase([process1, process2, process3, process4], [worm], grid)
+    const result = wormReplicationPhase(
+      [process1, process2, process3, process4],
+      [worm],
+      grid,
+      'normal'
+    )
 
     expect(result.malware).toHaveLength(1)
   })
@@ -641,9 +647,63 @@ describe('wormReplicationPhase', () => {
     rootkit.abilityCooldown = 0
     rootkit.status = 'active'
 
-    const result = wormReplicationPhase([], [rootkit], grid)
+    const result = wormReplicationPhase([], [rootkit], grid, 'normal')
 
     expect(result.malware).toHaveLength(1)
+  })
+
+  it('should not replicate when at max worm count (easy)', () => {
+    const grid = createTestGrid()
+    // Create 8 worms (max for easy difficulty)
+    const worms = Array.from({ length: 8 }, (_, i) => {
+      const worm = createMalware('worm', { x: i, y: 0 })
+      worm.status = 'active'
+      if (i === 0) {
+        worm.abilityCooldown = 0 // Ready to replicate
+      }
+      return worm
+    })
+
+    const result = wormReplicationPhase([], worms, grid, 'easy')
+
+    // Should not create new worms
+    expect(result.malware).toHaveLength(8)
+  })
+
+  it('should not replicate when at max worm count (normal)', () => {
+    const grid = createTestGrid()
+    // Create 12 worms (max for normal difficulty)
+    const worms = Array.from({ length: 12 }, (_, i) => {
+      const worm = createMalware('worm', { x: i % 10, y: Math.floor(i / 10) })
+      worm.status = 'active'
+      if (i === 0) {
+        worm.abilityCooldown = 0 // Ready to replicate
+      }
+      return worm
+    })
+
+    const result = wormReplicationPhase([], worms, grid, 'normal')
+
+    // Should not create new worms
+    expect(result.malware).toHaveLength(12)
+  })
+
+  it('should allow replication when below max worm count', () => {
+    const grid = createTestGrid()
+    // Create 7 worms (below max of 8 for easy difficulty)
+    const worms = Array.from({ length: 7 }, (_, i) => {
+      const worm = createMalware('worm', { x: i, y: 0 })
+      worm.status = 'active'
+      if (i === 0) {
+        worm.abilityCooldown = 0 // Ready to replicate
+      }
+      return worm
+    })
+
+    const result = wormReplicationPhase([], worms, grid, 'easy')
+
+    // Should create one new worm
+    expect(result.malware).toHaveLength(8)
   })
 })
 
@@ -715,24 +775,34 @@ describe('dormantActivationPhase', () => {
 
 describe('checkVictoryDefeat', () => {
   describe('victory conditions', () => {
-    it('should return victory when all malware destroyed', () => {
-      const process = createProcess('scout', { x: 0, y: 0 })
-      const malware = createMalware('worm', { x: 1, y: 0 })
-      malware.status = 'destroyed'
+    it('should return victory when process reaches exit point', () => {
+      const process = createProcess('scout', { x: 9, y: 9 })
+      const exitPoints = [{ x: 9, y: 9 }]
 
-      const result = checkVictoryDefeat([process], [malware])
+      const result = checkVictoryDefeat([process], exitPoints)
 
       expect(result.result).toBe('victory')
       expect(result.log).toContain('VICTORY')
     })
 
-    it('should return victory with multiple processes alive', () => {
+    it('should return victory when any process reaches exit', () => {
       const process1 = createProcess('scout', { x: 0, y: 0 })
-      const process2 = createProcess('purifier', { x: 1, y: 0 })
-      const malware = createMalware('worm', { x: 5, y: 5 })
-      malware.status = 'destroyed'
+      const process2 = createProcess('purifier', { x: 9, y: 9 })
+      const exitPoints = [{ x: 9, y: 9 }]
 
-      const result = checkVictoryDefeat([process1, process2], [malware])
+      const result = checkVictoryDefeat([process1, process2], exitPoints)
+
+      expect(result.result).toBe('victory')
+    })
+
+    it('should return victory when process reaches any exit point', () => {
+      const process = createProcess('scout', { x: 5, y: 9 })
+      const exitPoints = [
+        { x: 9, y: 9 },
+        { x: 5, y: 9 },
+      ]
+
+      const result = checkVictoryDefeat([process], exitPoints)
 
       expect(result.result).toBe('victory')
     })
@@ -742,63 +812,79 @@ describe('checkVictoryDefeat', () => {
     it('should return defeat when all processes destroyed', () => {
       const process = createProcess('scout', { x: 0, y: 0 })
       process.status = 'destroyed'
-      const malware = createMalware('worm', { x: 1, y: 0 })
+      const exitPoints = [{ x: 9, y: 9 }]
 
-      const result = checkVictoryDefeat([process], [malware])
+      const result = checkVictoryDefeat([process], exitPoints)
 
       expect(result.result).toBe('defeat')
       expect(result.log).toContain('DEFEAT')
     })
 
-    it('should return defeat with multiple malware alive', () => {
-      const process = createProcess('scout', { x: 0, y: 0 })
+    it('should return defeat with all processes destroyed regardless of position', () => {
+      const process = createProcess('scout', { x: 9, y: 9 })
       process.status = 'destroyed'
-      const malware1 = createMalware('worm', { x: 1, y: 0 })
-      const malware2 = createMalware('trojan', { x: 2, y: 0 })
+      const exitPoints = [{ x: 9, y: 9 }]
 
-      const result = checkVictoryDefeat([process], [malware1, malware2])
+      const result = checkVictoryDefeat([process], exitPoints)
 
       expect(result.result).toBe('defeat')
     })
   })
 
   describe('active conditions', () => {
-    it('should return active when both sides have alive units', () => {
+    it('should return active when process alive but not at exit', () => {
       const process = createProcess('scout', { x: 0, y: 0 })
-      const malware = createMalware('worm', { x: 1, y: 0 })
+      const exitPoints = [{ x: 9, y: 9 }]
 
-      const result = checkVictoryDefeat([process], [malware])
+      const result = checkVictoryDefeat([process], exitPoints)
 
       expect(result.result).toBe('active')
       expect(result.log).toBeNull()
     })
 
-    it('should return active with multiple units', () => {
+    it('should return active with multiple processes not at exit', () => {
+      const process1 = createProcess('scout', { x: 0, y: 0 })
+      const process2 = createProcess('purifier', { x: 1, y: 0 })
+      const exitPoints = [{ x: 9, y: 9 }]
+
+      const result = checkVictoryDefeat([process1, process2], exitPoints)
+
+      expect(result.result).toBe('active')
+    })
+
+    it('should return active with some destroyed processes but alive ones not at exit', () => {
       const process1 = createProcess('scout', { x: 0, y: 0 })
       const process2 = createProcess('purifier', { x: 1, y: 0 })
       process2.status = 'destroyed'
-      const malware = createMalware('worm', { x: 5, y: 5 })
+      const exitPoints = [{ x: 9, y: 9 }]
 
-      const result = checkVictoryDefeat([process1, process2], [malware])
+      const result = checkVictoryDefeat([process1, process2], exitPoints)
 
       expect(result.result).toBe('active')
     })
   })
 
   describe('edge cases', () => {
-    it('should handle empty arrays', () => {
-      const result = checkVictoryDefeat([], [])
+    it('should handle empty process array', () => {
+      const exitPoints = [{ x: 9, y: 9 }]
+      const result = checkVictoryDefeat([], exitPoints)
 
       expect(result.result).toBe('defeat')
     })
 
-    it('should prioritize defeat over victory', () => {
+    it('should handle empty exit points array', () => {
       const process = createProcess('scout', { x: 0, y: 0 })
-      process.status = 'destroyed'
-      const malware = createMalware('worm', { x: 1, y: 0 })
-      malware.status = 'destroyed'
+      const result = checkVictoryDefeat([process], [])
 
-      const result = checkVictoryDefeat([process], [malware])
+      expect(result.result).toBe('active')
+    })
+
+    it('should prioritize defeat over victory when process at exit but destroyed', () => {
+      const process = createProcess('scout', { x: 9, y: 9 })
+      process.status = 'destroyed'
+      const exitPoints = [{ x: 9, y: 9 }]
+
+      const result = checkVictoryDefeat([process], exitPoints)
 
       expect(result.result).toBe('defeat')
     })
@@ -912,14 +998,16 @@ describe('executeTick', () => {
   })
 
   describe('victory defeat integration', () => {
-    it('should set expeditionResult to victory', () => {
-      const process = createProcess('scout', { x: 0, y: 0 })
-      const malware = createMalware('worm', { x: 1, y: 0 })
-      malware.status = 'destroyed'
+    it('should set expeditionResult to victory when process at exit', () => {
+      const process = createProcess('scout', { x: 9, y: 9 })
+      const exitPoints = [{ x: 9, y: 9 }]
 
       const context = createTestContext({
         processes: [process],
-        malware: [malware],
+        sector: {
+          exitPoints,
+          spawnPoints: [{ x: 0, y: 0 }],
+        },
       })
 
       const result = executeTick(context)
@@ -930,11 +1018,9 @@ describe('executeTick', () => {
     it('should set expeditionResult to defeat', () => {
       const process = createProcess('scout', { x: 0, y: 0 })
       process.status = 'destroyed'
-      const malware = createMalware('worm', { x: 1, y: 0 })
 
       const context = createTestContext({
         processes: [process],
-        malware: [malware],
       })
 
       const result = executeTick(context)
@@ -942,13 +1028,15 @@ describe('executeTick', () => {
       expect(result.expeditionResult).toBe('defeat')
     })
 
-    it('should set expeditionResult to active', () => {
+    it('should set expeditionResult to active when process alive but not at exit', () => {
       const process = createProcess('scout', { x: 0, y: 0 })
-      const malware = createMalware('worm', { x: 1, y: 0 })
 
       const context = createTestContext({
         processes: [process],
-        malware: [malware],
+        sector: {
+          exitPoints: [{ x: 9, y: 9 }],
+          spawnPoints: [{ x: 0, y: 0 }],
+        },
       })
 
       const result = executeTick(context)

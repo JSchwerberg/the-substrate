@@ -55,6 +55,7 @@ describe('gameStore', () => {
         malwareDestroyed: 0,
         ticksSurvived: 0,
       },
+      midExpeditionDeployCount: 0,
       processes: [],
       malware: [],
       selectedProcessId: null,
@@ -1183,6 +1184,214 @@ describe('gameStore', () => {
       const processes = selectProcesses(state)
 
       expect(processes).toEqual(state.processes)
+    })
+  })
+
+  // ============= Energy-Based Deployment =============
+
+  describe('energy-based deployment', () => {
+    beforeEach(() => {
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
+    })
+
+    it('deployProcess should cost cycles before expedition starts', () => {
+      const initialCycles = useGameStore.getState().resources.cycles
+      const initialEnergy = useGameStore.getState().resources.energy
+
+      useGameStore.getState().deployProcess('scout', 0)
+
+      expect(useGameStore.getState().resources.cycles).toBe(initialCycles - 20)
+      expect(useGameStore.getState().resources.energy).toBe(initialEnergy) // Energy unchanged
+    })
+
+    it('deployProcess should cost energy during expedition with base cost', () => {
+      // Deploy first process to start expedition
+      useGameStore.getState().deployProcess('scout', 0)
+      expect(useGameStore.getState().expeditionActive).toBe(true)
+
+      // Add more energy and create another spawn point for second deployment
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 100 },
+      })
+      const sector = useGameStore.getState().currentSector
+      if (sector) {
+        sector.spawnPoints = [
+          { x: 2, y: 2 },
+          { x: 3, y: 2 },
+        ]
+      }
+
+      const initialEnergy = useGameStore.getState().resources.energy
+      useGameStore.getState().deployProcess('scout', 1)
+
+      // Should cost 30 energy (base cost for scout)
+      expect(useGameStore.getState().resources.energy).toBe(initialEnergy - 30)
+    })
+
+    it('deployProcess should apply exponential scaling on subsequent deployments', () => {
+      // Start expedition with first deployment
+      useGameStore.getState().deployProcess('scout', 0)
+
+      // Add more energy and spawn points
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 200 },
+      })
+      const sector = useGameStore.getState().currentSector
+      if (sector) {
+        sector.spawnPoints = [
+          { x: 2, y: 2 },
+          { x: 3, y: 2 },
+          { x: 4, y: 2 },
+          { x: 5, y: 2 },
+        ]
+        // Ensure processes array is updated in sector
+        useGameStore.setState({ currentSector: { ...sector } })
+      }
+
+      // Second deployment: 30 * 1.5^0 = 30 (first mid-expedition deployment)
+      useGameStore.getState().deployProcess('scout', 1)
+      expect(useGameStore.getState().resources.energy).toBe(200 - 30)
+
+      // Third deployment: 30 * 1.5^1 = 45 (second mid-expedition deployment)
+      useGameStore.getState().deployProcess('scout', 2)
+      expect(useGameStore.getState().resources.energy).toBe(200 - 30 - 45)
+    })
+
+    it('deployProcess should track midExpeditionDeployCount correctly', () => {
+      useGameStore.getState().deployProcess('scout', 0)
+      expect(useGameStore.getState().midExpeditionDeployCount).toBe(0) // First deploy doesn't count
+
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 200 },
+      })
+      const sector = useGameStore.getState().currentSector
+      if (sector) {
+        sector.spawnPoints = [
+          { x: 2, y: 2 },
+          { x: 3, y: 2 },
+          { x: 4, y: 2 },
+        ]
+      }
+
+      useGameStore.getState().deployProcess('scout', 1)
+      expect(useGameStore.getState().midExpeditionDeployCount).toBe(1)
+
+      useGameStore.getState().deployProcess('scout', 2)
+      expect(useGameStore.getState().midExpeditionDeployCount).toBe(2)
+    })
+
+    it('deployProcess should use different base costs for different archetypes', () => {
+      useGameStore.getState().deployProcess('scout', 0)
+
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 200 },
+      })
+      const sector = useGameStore.getState().currentSector
+      if (sector) {
+        sector.spawnPoints = [
+          { x: 2, y: 2 },
+          { x: 3, y: 2 },
+        ]
+      }
+
+      const initialEnergy = useGameStore.getState().resources.energy
+      useGameStore.getState().deployProcess('purifier', 1)
+
+      // Should cost 50 energy (base cost for purifier)
+      expect(useGameStore.getState().resources.energy).toBe(initialEnergy - 50)
+    })
+
+    it('deployProcess should fail if insufficient energy during expedition', () => {
+      useGameStore.getState().deployProcess('scout', 0)
+
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 20 }, // Not enough for 30
+      })
+      const sector = useGameStore.getState().currentSector
+      if (sector) {
+        sector.spawnPoints = [
+          { x: 2, y: 2 },
+          { x: 3, y: 2 },
+        ]
+      }
+
+      const processCount = useGameStore.getState().processes.length
+      useGameStore.getState().deployProcess('scout', 1)
+
+      expect(useGameStore.getState().processes.length).toBe(processCount)
+      expect(useGameStore.getState().resources.energy).toBe(20) // Unchanged
+    })
+
+    it('generateNewSector should reset midExpeditionDeployCount', () => {
+      useGameStore.getState().deployProcess('scout', 0)
+      useGameStore.setState({ midExpeditionDeployCount: 5 })
+
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
+
+      expect(useGameStore.getState().midExpeditionDeployCount).toBe(0)
+    })
+  })
+
+  // ============= Energy Regeneration =============
+
+  describe('energy regeneration', () => {
+    beforeEach(() => {
+      useGameStore
+        .getState()
+        .generateNewSector({ size: 'small', difficulty: 'normal', seed: 12345 })
+      useGameStore.getState().deployProcess('scout', 0)
+      useGameStore.getState().startExpedition()
+    })
+
+    it('tick should regenerate energy during expedition', () => {
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 50 },
+      })
+
+      const initialEnergy = useGameStore.getState().resources.energy
+      useGameStore.getState().tick()
+
+      // Should regenerate +5 energy per tick
+      expect(useGameStore.getState().resources.energy).toBe(initialEnergy + 5)
+    })
+
+    it('tick should cap energy at max capacity', () => {
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 98 },
+      })
+
+      useGameStore.getState().tick()
+
+      // Should cap at 100
+      expect(useGameStore.getState().resources.energy).toBe(100)
+    })
+
+    it('tick should not regenerate energy when paused', () => {
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 50 },
+        isPaused: true,
+      })
+
+      const initialEnergy = useGameStore.getState().resources.energy
+      useGameStore.getState().tick()
+
+      expect(useGameStore.getState().resources.energy).toBe(initialEnergy)
+    })
+
+    it('tick should not regenerate energy when expedition not active', () => {
+      useGameStore.setState({
+        resources: { cycles: 100, memory: 50, energy: 50 },
+        expeditionActive: false,
+      })
+
+      const initialEnergy = useGameStore.getState().resources.energy
+      useGameStore.getState().tick()
+
+      expect(useGameStore.getState().resources.energy).toBe(initialEnergy)
     })
   })
 })

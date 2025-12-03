@@ -14,7 +14,15 @@ import { setMovementTarget } from '@core/systems/MovementSystem'
 import { executeTick } from '@core/systems/TickSystem'
 import { saveProgression, loadProgression } from '@persistence/SaveManager'
 import { isValidArchetype, isValidSpawnIndex } from '@game/validation'
-import { DEPLOY_COST, UPGRADES, REWARDS, DIFFICULTY, SAFE_LIMITS } from '@core/constants/GameConfig'
+import {
+  DEPLOY_COST,
+  ENERGY_DEPLOYMENT_COSTS,
+  ENERGY_REGEN_PER_TICK,
+  UPGRADES,
+  REWARDS,
+  DIFFICULTY,
+  SAFE_LIMITS,
+} from '@core/constants/GameConfig'
 
 // Import slices
 import { createBehaviorSlice } from './slices/behaviorSlice'
@@ -98,6 +106,7 @@ export interface GameState extends BehaviorSlice, ConfigSlice, ResourceSlice {
   expeditionActive: boolean
   expeditionResult: ExpeditionResult
   expeditionScore: ExpeditionScore
+  midExpeditionDeployCount: number
   processes: Process[]
   malware: Malware[]
   selectedProcessId: string | null
@@ -168,6 +177,7 @@ export const useGameStore = create<GameState>()(
       malwareDestroyed: 0,
       ticksSurvived: 0,
     },
+    midExpeditionDeployCount: 0,
     processes: [],
     malware: [],
     selectedProcessId: null,
@@ -225,6 +235,7 @@ export const useGameStore = create<GameState>()(
           malwareDestroyed: 0,
           ticksSurvived: 0,
         },
+        midExpeditionDeployCount: 0,
         resources: getInitialResources(upgrades),
         selectedProcessId: null,
         currentTick: 0,
@@ -259,7 +270,8 @@ export const useGameStore = create<GameState>()(
 
     // Deploy a process at a spawn point (with validation)
     deployProcess: (archetype: ProcessArchetype, spawnIndex: number) => {
-      const { currentSector, processes, upgrades } = get()
+      const { currentSector, processes, upgrades, expeditionActive, midExpeditionDeployCount } =
+        get()
       if (!currentSector) return
 
       // Validate archetype
@@ -283,8 +295,26 @@ export const useGameStore = create<GameState>()(
       )
       if (occupied) return
 
+      // Calculate deployment cost based on expedition status
+      let cost: Partial<Resources>
+      let newDeployCount = midExpeditionDeployCount
+
+      if (expeditionActive) {
+        // Mid-expedition: use energy with exponential scaling
+        const baseEnergyCost =
+          archetype === 'scout' ? ENERGY_DEPLOYMENT_COSTS.SCOUT : ENERGY_DEPLOYMENT_COSTS.PURIFIER
+        const scaledEnergyCost = Math.floor(
+          baseEnergyCost *
+            Math.pow(ENERGY_DEPLOYMENT_COSTS.SCALING_MULTIPLIER, midExpeditionDeployCount)
+        )
+        cost = { energy: scaledEnergyCost }
+        newDeployCount = midExpeditionDeployCount + 1
+      } else {
+        // Pre-expedition: use cycles (existing behavior)
+        cost = DEPLOYMENT_COSTS[archetype]
+      }
+
       // Check and deduct deployment cost
-      const cost = DEPLOYMENT_COSTS[archetype]
       const canAfford = get().spendResources(cost)
       if (!canAfford) return
 
@@ -303,6 +333,7 @@ export const useGameStore = create<GameState>()(
       set(state => ({
         processes: [...state.processes, process],
         selectedProcessId: process.id,
+        midExpeditionDeployCount: newDeployCount,
         // Auto-start expedition when first process deployed
         expeditionActive: true,
         isPaused: false,
@@ -343,6 +374,7 @@ export const useGameStore = create<GameState>()(
         expeditionScore,
         behaviorRules,
         currentTick,
+        selectedDifficulty,
       } = get()
       // Block tick on defeat, but allow continuation after victory for cache collection
       if (!currentSector || isPaused || !expeditionActive || expeditionResult === 'defeat') return
@@ -359,12 +391,16 @@ export const useGameStore = create<GameState>()(
         },
         behaviorRules,
         currentTick,
+        difficulty: selectedDifficulty,
       })
 
       // Award resources for collected caches
       if (result.cachesCollected > 0) {
         get().addResources({ cycles: result.cachesCollected * 10 })
       }
+
+      // Regenerate energy during expedition
+      get().addResources({ energy: ENERGY_REGEN_PER_TICK })
 
       // Update state with tick results
       set({

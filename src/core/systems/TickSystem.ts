@@ -16,6 +16,7 @@ import { Malware, createMalware } from '@core/models/malware'
 import { BehaviorRule } from '@core/models/behavior'
 import { calculateDamage } from '@core/systems/CombatSystem'
 import { processBehavior, type GameState as BehaviorGameState } from '@core/systems/BehaviorSystem'
+import { WORM } from '@core/constants/GameConfig'
 
 // ============= Types =============
 
@@ -30,6 +31,7 @@ export interface TickContext {
   }
   behaviorRules: BehaviorRule[]
   currentTick: number
+  difficulty: 'easy' | 'normal' | 'hard'
 }
 
 export interface TickResult {
@@ -315,11 +317,23 @@ export interface WormReplicationResult {
 export function wormReplicationPhase(
   processes: Process[],
   malware: Malware[],
-  grid: Grid
+  grid: Grid,
+  difficulty: 'easy' | 'normal' | 'hard'
 ): WormReplicationResult {
   const newWorms: Malware[] = []
   const logs: string[] = []
   const updatedMalware = [...malware]
+
+  // Count current worms
+  const currentWormCount = updatedMalware.filter(
+    m => m.type === 'worm' && m.status !== 'destroyed'
+  ).length
+  const maxWorms = WORM.MAX_COUNT[difficulty]
+
+  // If at or above max worms, skip replication entirely
+  if (currentWormCount >= maxWorms) {
+    return { malware: updatedMalware, logs }
+  }
 
   for (const m of updatedMalware) {
     if (
@@ -354,6 +368,12 @@ export function wormReplicationPhase(
       })
 
       if (validPositions.length > 0) {
+        // Check if we've reached the max worm count (including newly created worms)
+        const totalWorms = currentWormCount + newWorms.length
+        if (totalWorms >= maxWorms) {
+          continue // Skip replication if at max
+        }
+
         const spawnPos = validPositions[Math.floor(Math.random() * validPositions.length)]!
         const newWorm = createMalware('worm', spawnPos)
         newWorms.push(newWorm)
@@ -408,17 +428,27 @@ export type ExpeditionResult = 'active' | 'victory' | 'defeat'
 
 export function checkVictoryDefeat(
   processes: Process[],
-  malware: Malware[]
+  exitPoints: GridPosition[]
 ): { result: ExpeditionResult; log: string | null } {
   const aliveProcesses = processes.filter(p => p.status !== 'destroyed')
-  const aliveMalware = malware.filter(m => m.status !== 'destroyed')
 
+  // Defeat: all processes destroyed
   if (aliveProcesses.length === 0) {
     return { result: 'defeat', log: 'All processes destroyed - DEFEAT' }
   }
-  if (aliveMalware.length === 0) {
-    return { result: 'victory', log: 'All malware eliminated - VICTORY!' }
+
+  // Victory: any alive process reached an exit point
+  const processAtExit =
+    exitPoints &&
+    exitPoints.length > 0 &&
+    aliveProcesses.some(process =>
+      exitPoints.some(exit => exit.x === process.position.x && exit.y === process.position.y)
+    )
+
+  if (processAtExit) {
+    return { result: 'victory', log: 'Process reached exit point - VICTORY!' }
   }
+
   return { result: 'active', log: null }
 }
 
@@ -502,7 +532,12 @@ export function executeTick(context: TickContext): TickResult {
   aiResult.logs.forEach(addLog)
 
   // Phase 3.5: Worm Replication
-  const replicationResult = wormReplicationPhase(updatedProcesses, updatedMalware, updatedGrid)
+  const replicationResult = wormReplicationPhase(
+    updatedProcesses,
+    updatedMalware,
+    updatedGrid,
+    context.difficulty
+  )
   updatedMalware = replicationResult.malware
   replicationResult.logs.forEach(addLog)
 
@@ -512,7 +547,7 @@ export function executeTick(context: TickContext): TickResult {
   activationResult.logs.forEach(addLog)
 
   // Phase 5: Victory/Defeat Check
-  const victoryCheck = checkVictoryDefeat(updatedProcesses, updatedMalware)
+  const victoryCheck = checkVictoryDefeat(updatedProcesses, context.sector.exitPoints)
   if (victoryCheck.log) addLog(victoryCheck.log)
 
   return {

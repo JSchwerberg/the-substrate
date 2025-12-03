@@ -5,13 +5,42 @@
 import { memo } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 import { ARCHETYPES, ProcessArchetype } from '@core/models/process'
+import { DEPLOY_COST, ENERGY_DEPLOYMENT_COSTS } from '@core/constants/GameConfig'
 
 export const DeploymentPanel = memo(function DeploymentPanel() {
   const deployProcess = useGameStore(state => state.deployProcess)
   const expeditionActive = useGameStore(state => state.expeditionActive)
+  const midExpeditionDeployCount = useGameStore(state => state.midExpeditionDeployCount)
+  const resources = useGameStore(state => state.resources)
 
   const handleDeploy = (archetype: ProcessArchetype) => {
     deployProcess(archetype, 0)
+  }
+
+  const getDeploymentCost = (archetype: ProcessArchetype) => {
+    if (expeditionActive) {
+      // Mid-expedition: energy cost with exponential scaling
+      const baseEnergyCost =
+        archetype === 'scout' ? ENERGY_DEPLOYMENT_COSTS.SCOUT : ENERGY_DEPLOYMENT_COSTS.PURIFIER
+      const scaledEnergyCost = Math.floor(
+        baseEnergyCost *
+          Math.pow(ENERGY_DEPLOYMENT_COSTS.SCALING_MULTIPLIER, midExpeditionDeployCount)
+      )
+      return { resource: 'ENERGY', amount: scaledEnergyCost }
+    } else {
+      // Pre-expedition: cycles cost
+      const cyclesCost = archetype === 'scout' ? DEPLOY_COST.SCOUT : DEPLOY_COST.PURIFIER
+      return { resource: 'CYCLES', amount: cyclesCost }
+    }
+  }
+
+  const canAfford = (archetype: ProcessArchetype) => {
+    const cost = getDeploymentCost(archetype)
+    if (cost.resource === 'ENERGY') {
+      return resources.energy >= cost.amount
+    } else {
+      return resources.cycles >= cost.amount
+    }
   }
 
   return (
@@ -47,32 +76,40 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
         {(Object.keys(ARCHETYPES) as ProcessArchetype[]).map((key, index) => {
           const archetype = ARCHETYPES[key]
           const keyHint = (index + 1).toString()
+          const cost = getDeploymentCost(key)
+          const affordable = canAfford(key)
 
           return (
             <button
               key={key}
               onClick={() => handleDeploy(key)}
+              disabled={!affordable}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
                 padding: '12px',
-                backgroundColor: '#16213e',
+                backgroundColor: affordable ? '#16213e' : '#0f1621',
                 border: `2px solid #${archetype.color.toString(16).padStart(6, '0')}`,
                 borderRadius: '4px',
-                cursor: 'pointer',
+                cursor: affordable ? 'pointer' : 'not-allowed',
                 transition: 'all 0.2s ease',
                 position: 'relative',
+                opacity: affordable ? 1 : 0.5,
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = '#1e2947'
-                e.currentTarget.style.transform = 'translateY(-2px)'
-                e.currentTarget.style.boxShadow = `0 4px 12px #${archetype.color.toString(16).padStart(6, '0')}40`
+                if (affordable) {
+                  e.currentTarget.style.backgroundColor = '#1e2947'
+                  e.currentTarget.style.transform = 'translateY(-2px)'
+                  e.currentTarget.style.boxShadow = `0 4px 12px #${archetype.color.toString(16).padStart(6, '0')}40`
+                }
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = '#16213e'
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = 'none'
+                if (affordable) {
+                  e.currentTarget.style.backgroundColor = '#16213e'
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }
               }}
             >
               {/* Key hint badge */}
@@ -169,6 +206,23 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
                     {archetype.baseStats.maxActionPoints}
                   </span>
                 </div>
+              </div>
+
+              {/* Cost display */}
+              <div
+                style={{
+                  marginTop: '8px',
+                  paddingTop: '8px',
+                  borderTop: '1px solid #333',
+                  width: '100%',
+                  fontSize: '0.75rem',
+                  fontFamily: 'monospace',
+                  color: affordable ? '#fbbf24' : '#ef4444',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                }}
+              >
+                {cost.resource}: {cost.amount}
               </div>
             </button>
           )

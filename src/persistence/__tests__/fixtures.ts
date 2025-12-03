@@ -92,6 +92,7 @@ export function createMockSerializableState(overrides?: Record<string, unknown>)
     expeditionActive: false,
     expeditionResult: 'active' as ExpeditionResult,
     expeditionScore: createMockExpeditionScore(),
+    midExpeditionDeployCount: 0,
     processes: [],
     malware: [],
     selectedProcessId: null,

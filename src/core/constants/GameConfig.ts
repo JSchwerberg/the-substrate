@@ -38,6 +38,14 @@ export const DEPLOY_COST = {
   PURIFIER: 40,
 } as const
 
+export const ENERGY_DEPLOYMENT_COSTS = {
+  SCOUT: 30,
+  PURIFIER: 50,
+  SCALING_MULTIPLIER: 1.5,
+} as const
+
+export const ENERGY_REGEN_PER_TICK = 5
+
 // ============= Upgrade System =============
 
 export const UPGRADES = {
@@ -117,5 +125,11 @@ export const GENERATION = {
 
 export const WORM = {
   /** Ticks between worm replications */
-  REPLICATION_COOLDOWN: 5,
+  REPLICATION_COOLDOWN: 10,
+  /** Maximum number of worms allowed per difficulty */
+  MAX_COUNT: {
+    easy: 8,
+    normal: 12,
+    hard: 16,
+  },
 } as const

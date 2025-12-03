@@ -187,10 +187,10 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - [x] ~~551-line gameStore still large~~ → Fixed: 333 lines + 7 slices
 
 ### Low Priority (P3)
-- [ ] Defeat screen redundant clicks (Claim Rewards → New Expedition could be one action)
-- [ ] Legend for tile colors/symbols
-- [ ] Service worker cache versioning
-- [ ] Cross-tab state synchronization
+- [x] ~~Defeat screen redundant clicks~~ → Fixed: "Claim & Continue" primary action
+- [x] ~~Legend for tile colors/symbols~~ → Already implemented in Legend.tsx
+- [x] ~~Service worker cache versioning~~ → Workbox auto-handles via asset hashing
+- [ ] Cross-tab state synchronization → Deferred to post-MVP
 
 ---
 

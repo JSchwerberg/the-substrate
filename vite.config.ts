@@ -9,6 +9,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // Service worker auto-updates when new assets are detected
+      // Workbox handles cache versioning automatically via content hashing
+      // See: https://vite-pwa-org.netlify.app/guide/auto-update.html
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'assets/**/*'],
       manifest: {

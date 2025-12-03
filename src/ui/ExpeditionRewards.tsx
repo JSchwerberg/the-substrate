@@ -65,6 +65,12 @@ export const ExpeditionRewards = memo(function ExpeditionRewards({
     onNewExpedition()
   }
 
+  // Combined action: claim rewards and start new expedition in one click
+  const handleClaimAndContinue = () => {
+    claimExpeditionRewards()
+    handleNewExpedition()
+  }
+
   const displayRewards = rewards || rewardPreview
 
   return (
@@ -291,33 +297,64 @@ export const ExpeditionRewards = memo(function ExpeditionRewards({
 
         {/* Action Buttons */}
         {!claimed ? (
-          <button
-            onClick={handleClaimRewards}
-            style={{
-              width: '100%',
-              padding: '14px',
-              backgroundColor: '#16213e',
-              border: '2px solid #4ecdc4',
-              borderRadius: '6px',
-              color: '#4ecdc4',
-              fontSize: '1rem',
-              fontWeight: 700,
-              fontFamily: 'monospace',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              textTransform: 'uppercase',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = '#4ecdc420'
-              e.currentTarget.style.boxShadow = '0 0 16px rgba(78, 205, 196, 0.4)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = '#16213e'
-              e.currentTarget.style.boxShadow = 'none'
-            }}
-          >
-            Claim Rewards
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {/* Primary: Combined action */}
+            <button
+              onClick={handleClaimAndContinue}
+              style={{
+                width: '100%',
+                padding: '14px',
+                backgroundColor: '#16213e',
+                border: '2px solid #4ade80',
+                borderRadius: '6px',
+                color: '#4ade80',
+                fontSize: '1rem',
+                fontWeight: 700,
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                textTransform: 'uppercase',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = '#4ade8020'
+                e.currentTarget.style.boxShadow = '0 0 16px rgba(74, 222, 128, 0.4)'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = '#16213e'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              Claim & Continue
+            </button>
+
+            {/* Secondary: Just claim (to review rewards) */}
+            <button
+              onClick={handleClaimRewards}
+              style={{
+                width: '100%',
+                padding: '10px',
+                backgroundColor: 'transparent',
+                border: '1px solid #555',
+                borderRadius: '6px',
+                color: '#888',
+                fontSize: '0.85rem',
+                fontWeight: 500,
+                fontFamily: 'monospace',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = '#4ecdc4'
+                e.currentTarget.style.color = '#4ecdc4'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = '#555'
+                e.currentTarget.style.color = '#888'
+              }}
+            >
+              Review Rewards First
+            </button>
+          </div>
         ) : (
           <button
             onClick={handleNewExpedition}

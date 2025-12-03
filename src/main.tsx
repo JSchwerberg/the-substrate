@@ -1,3 +1,4 @@
+import 'pixi.js/unsafe-eval' // Must be first - enables CSP-compliant shader compilation
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'

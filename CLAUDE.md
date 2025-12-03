@@ -106,7 +106,7 @@ See `PLAN.md` for full details. Key items:
 
 ## Development Guidelines
 
-- Prefer using specialized subagents, including: the debugger agent when fixing bugs; the javascript-typescript and frontend-mobile-development agents; or any others that you feel are appropriate for the job.
+- Automatically delegate all tasks to appropriate subagents, including: the debugger agent when fixing bugs; the javascript-typescript and frontend-mobile-development agents; or any others that you feel are appropriate for the job.
 - Use appropriate specialized subagents: frontend-mobile-development, javascript-typescript, error-diagnostics.
 - Use prettier to ensure that all committed changes meet style guidelines
 - Always run `npm run format` before committing to pass CI checks

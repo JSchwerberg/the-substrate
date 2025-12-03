@@ -11,8 +11,9 @@ import { GridPosition, getTile } from '@core/models/grid'
 import { ProcessArchetype, createProcess } from '@core/models/process'
 import { MalwareType, createMalware } from '@core/models/malware'
 import { generateSector, GeneratorOptions } from '@core/generation/SectorGenerator'
-import { revealSpawnArea } from '@core/systems/FogOfWar'
+import { revealSpawnArea, revealArea } from '@core/systems/FogOfWar'
 import { setMovementTarget } from '@core/systems/MovementSystem'
+import { findPath } from '@core/systems/Pathfinding'
 import { executeTick } from '@core/systems/TickSystem'
 import { isValidArchetype, isValidSpawnIndex } from '@game/validation'
 import {
@@ -21,7 +22,9 @@ import {
   ENERGY_REGEN_PER_TICK,
   UPGRADES,
   DIFFICULTY,
+  INTERVENTIONS,
 } from '@core/constants/GameConfig'
+import type { InterventionType } from '@core/constants/GameConfig'
 
 // Import slices
 import { createBehaviorSlice } from './slices/behaviorSlice'
@@ -87,6 +90,7 @@ interface OrchestrationActions {
   deployProcess: (archetype: ProcessArchetype, spawnIndex: number) => void
   moveSelectedProcess: (target: GridPosition) => void
   tick: () => void
+  executeIntervention: (type: InterventionType) => boolean
 }
 
 // ============= Game State =============
@@ -318,6 +322,61 @@ export const useGameStore = create<GameState>()(
       }
 
       get().updateVisibility()
+    },
+
+    // Execute an intervention - costs energy, requires selected process
+    executeIntervention: (type: InterventionType): boolean => {
+      const { selectedProcessId, processes, currentSector, expeditionActive, resources } = get()
+
+      // Must be in active expedition with a selected process
+      if (!expeditionActive || !selectedProcessId || !currentSector) {
+        return false
+      }
+
+      const process = processes.find(p => p.id === selectedProcessId)
+      if (!process || process.status === 'destroyed') {
+        return false
+      }
+
+      const intervention = INTERVENTIONS[type]
+      const cost = intervention.cost
+
+      // Check if we can afford
+      if (resources.energy < cost) {
+        return false
+      }
+
+      // Deduct energy cost
+      get().spendResources({ energy: cost })
+
+      // Execute the intervention
+      if (type === 'SCAN') {
+        // Reveal area around selected process
+        revealArea(currentSector.grid, process.position, INTERVENTIONS.SCAN.radius)
+        get().updateVisibility()
+        get().addCombatLog(`[SCAN] Revealed area around ${process.archetype}`)
+      } else if (type === 'RETREAT') {
+        // Find nearest spawn point and set as movement target
+        const spawnPoints = currentSector.spawnPoints
+        let nearestSpawn: GridPosition | null = null
+        let nearestDistance = Infinity
+
+        for (const spawn of spawnPoints) {
+          const path = findPath(currentSector.grid, process.position, spawn)
+          if (path && path.length < nearestDistance) {
+            nearestDistance = path.length
+            nearestSpawn = spawn
+          }
+        }
+
+        if (nearestSpawn) {
+          setMovementTarget(process, nearestSpawn, currentSector.grid)
+          get().setProcesses([...processes])
+          get().addCombatLog(`[RETREAT] ${process.archetype} retreating to spawn`)
+        }
+      }
+
+      return true
     },
   }))
 )

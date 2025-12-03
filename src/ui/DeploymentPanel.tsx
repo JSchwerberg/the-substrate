@@ -5,13 +5,16 @@
 import { memo } from 'react'
 import { useGameStore } from '@game/state/gameStore'
 import { ARCHETYPES, ProcessArchetype } from '@core/models/process'
-import { DEPLOY_COST, ENERGY_DEPLOYMENT_COSTS } from '@core/constants/GameConfig'
+import { DEPLOY_COST, ENERGY_DEPLOYMENT_COSTS, INTERVENTIONS } from '@core/constants/GameConfig'
+import type { InterventionType } from '@core/constants/GameConfig'
 
 export const DeploymentPanel = memo(function DeploymentPanel() {
   const deployProcess = useGameStore(state => state.deployProcess)
+  const executeIntervention = useGameStore(state => state.executeIntervention)
   const expeditionActive = useGameStore(state => state.expeditionActive)
   const midExpeditionDeployCount = useGameStore(state => state.midExpeditionDeployCount)
   const resources = useGameStore(state => state.resources)
+  const selectedProcessId = useGameStore(state => state.selectedProcessId)
 
   const handleDeploy = (archetype: ProcessArchetype) => {
     deployProcess(archetype, 0)
@@ -244,6 +247,115 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
           }}
         >
           EXPEDITION ACTIVE
+        </div>
+      )}
+
+      {/* Interventions - only show during active expedition */}
+      {expeditionActive && (
+        <div
+          style={{
+            marginTop: '16px',
+            paddingTop: '16px',
+            borderTop: '1px solid #333',
+          }}
+        >
+          <h3
+            style={{
+              margin: '0 0 12px 0',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              color: '#fbbf24',
+              fontFamily: 'monospace',
+            }}
+          >
+            INTERVENTIONS
+          </h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {(Object.keys(INTERVENTIONS) as InterventionType[]).map(type => {
+              const intervention = INTERVENTIONS[type]
+              const canAffordIntervention = resources.energy >= intervention.cost
+              const hasSelection = !!selectedProcessId
+              const canUse = canAffordIntervention && hasSelection
+
+              return (
+                <button
+                  key={type}
+                  onClick={() => executeIntervention(type)}
+                  disabled={!canUse}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px 12px',
+                    backgroundColor: canUse ? '#16213e' : '#0f1621',
+                    border: `1px solid ${canUse ? '#fbbf24' : '#333'}`,
+                    borderRadius: '4px',
+                    cursor: canUse ? 'pointer' : 'not-allowed',
+                    opacity: canUse ? 1 : 0.5,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={e => {
+                    if (canUse) {
+                      e.currentTarget.style.backgroundColor = '#1e2947'
+                      e.currentTarget.style.borderColor = '#fbbf24'
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (canUse) {
+                      e.currentTarget.style.backgroundColor = '#16213e'
+                    }
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: canUse ? '#fbbf24' : '#666',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {type}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#888',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {intervention.description}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: canAffordIntervention ? '#fbbf24' : '#ef4444',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    {intervention.cost} E
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {!selectedProcessId && (
+            <div
+              style={{
+                marginTop: '8px',
+                fontSize: '0.65rem',
+                color: '#888',
+                textAlign: 'center',
+                fontFamily: 'monospace',
+              }}
+            >
+              Select a unit to use interventions
+            </div>
+          )}
         </div>
       )}
     </div>

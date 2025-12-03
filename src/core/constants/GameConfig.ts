@@ -133,3 +133,21 @@ export const WORM = {
     hard: 16,
   },
 } as const
+
+// ============= Interventions =============
+
+export const INTERVENTIONS = {
+  /** Retreat: Move selected process toward nearest spawn point */
+  RETREAT: {
+    cost: 50,
+    description: 'Retreat to spawn',
+  },
+  /** Scan: Reveal area around selected process */
+  SCAN: {
+    cost: 30,
+    radius: 3,
+    description: 'Reveal area',
+  },
+} as const
+
+export type InterventionType = keyof typeof INTERVENTIONS

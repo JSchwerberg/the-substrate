@@ -122,6 +122,7 @@ export function createMockGameState(overrides?: Partial<GameState>): GameState {
     deployProcess: () => {},
     moveSelectedProcess: () => {},
     tick: () => {},
+    executeIntervention: () => false,
     // Resource slice
     spendResources: () => false,
     addResources: () => {},

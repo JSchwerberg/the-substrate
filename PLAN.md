@@ -6,7 +6,7 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 
 **Target:** Web PWA
 **Visual Style:** 2D Pixel Art (placeholder shapes)
-**Status:** Phases 1-6 complete (MVP)
+**Status:** Core systems complete, design alignment in progress
 
 ---
 
@@ -16,9 +16,99 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 |-------|------------|
 | Framework | React 19 + TypeScript 5 (strict mode) |
 | Rendering | PixiJS 8 + @pixi/react |
-| State | Zustand |
+| State | Zustand (with slices) |
 | Build | Vite 7 + vite-plugin-pwa |
 | Styling | Inline styles (dark theme) |
+
+---
+
+## Design Document Alignment
+
+### Current vs Design Doc (as of 2025-12-03)
+
+| Feature | Design Doc | Current Implementation | Priority |
+|---------|-----------|------------------------|----------|
+| **Victory Condition** | Reach exit / reclaim sector | Kill all malware | P0 - Change |
+| **Mid-Expedition Deployment** | Costs energy (intervention) | Costs cycles (unlimited) | P0 - Change |
+| **Worm Replication** | Spread and multiply | 5-tick cooldown (too fast) | P0 - Balance |
+| **Resource Triangle** | Cycles/Memory/Energy all meaningful | Only Cycles used | P1 - Enhance |
+| **Intervention System** | Spend energy for directives | Not implemented | P1 - Add |
+| **Corruption System** | Core pressure mechanic | Not implemented | P2 - Future |
+| **Prestige/Recompilation** | Major progression system | Not implemented | P2 - Future |
+
+### Design Decisions Made
+
+1. **Victory Condition**: Change to "reach exit point" - strategic objective vs brute force
+2. **Mid-Expedition Deployment**: Costs energy instead of cycles (aligns with intervention design)
+3. **Worm Balance**: Increase cooldown (5 → 10 ticks) AND add max worm cap per sector
+
+---
+
+## Sprint 5: Design Alignment + gameStore Split
+
+### Phase 5A: Balance & Victory (Priority)
+
+**Objective:** Make the core loop playable and satisfying
+
+1. **Worm Replication Balance**
+   - [ ] Increase replication cooldown: 5 → 10 ticks (5 seconds)
+   - [ ] Add max worm cap per sector: 8 worms (Easy), 12 (Normal), 16 (Hard)
+   - [ ] Update GameConfig.ts with WORM.MAX_COUNT constant
+   - [ ] Modify wormReplicationPhase to check cap before spawning
+
+2. **Victory Condition: Exit Point**
+   - [ ] Add `exitPoint: GridPosition` to Sector model
+   - [ ] Generate exit point in SectorGenerator (opposite corner from spawn)
+   - [ ] Render exit point on grid (distinct visual)
+   - [ ] Add victory check: process reaches exit tile
+   - [ ] Optional: require minimum caches collected for victory
+
+3. **Mid-Expedition Deployment (Energy Cost)**
+   - [ ] Change deployProcess to cost energy when expeditionActive is true
+   - [ ] Keep cycles cost for pre-expedition deployment
+   - [ ] Add energy regeneration: +5 energy per tick (capped at max)
+   - [ ] Update DeploymentPanel to show energy cost during expedition
+
+### Phase 5B: gameStore Split (Phases 2-5)
+
+**Objective:** Complete modular store architecture
+
+4. **EntitySlice** (processes, malware, selection)
+   - [ ] Extract entity state and basic actions
+   - [ ] Keep deployProcess in main store (cross-slice dependency)
+
+5. **GridSlice** (sector, grid, visibility)
+   - [ ] Extract sector management
+   - [ ] Add exitPoint to sector state
+
+6. **ExpeditionSlice** (active, result, score, tick, combatLog)
+   - [ ] Extract expedition orchestration
+   - [ ] Keep tick() as main orchestrator
+
+7. **ProgressionSlice** (upgrades, persistentData, save/load)
+   - [ ] Extract progression and persistence
+   - [ ] Move claimExpeditionRewards logic
+
+### Phase 5C: Energy System
+
+**Objective:** Make energy meaningful per design doc
+
+8. **Energy Mechanics**
+   - [ ] Energy regeneration during expedition (+5/tick)
+   - [ ] Energy cost for mid-expedition deployment (20 for Scout, 30 for Purifier)
+   - [ ] Display energy in ResourcePanel with regeneration indicator
+   - [ ] Add "low energy" warning when < 20
+
+### Estimated Effort
+
+| Task | Effort | Risk |
+|------|--------|------|
+| Worm balance (cooldown + cap) | 1h | Low |
+| Victory condition (exit point) | 3h | Medium |
+| Energy-based deployment | 2h | Low |
+| gameStore Phases 2-5 | 8h | Medium |
+| Energy regeneration system | 2h | Low |
+| **Total** | **16h** | |
 
 ---
 
@@ -50,7 +140,7 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 ### Phase 5.5: Core Loop & Progression ✓
 - Deploy costs (Scout: 20, Purifier: 40 cycles)
 - Data cache collection (+10 cycles)
-- Worm replication (every 5 ticks)
+- Worm replication (every 5 ticks) - **needs rebalancing**
 - Persistent Data currency
 - Expedition rewards calculation
 - UpgradeShop (4 upgrades with exponential costs)
@@ -63,94 +153,82 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 - Mobile touch: pinch-to-zoom, adequate touch targets
 - Loading screen on app init
 
+### Sprint 1-2: Quality & Performance ✓ (2025-12-03)
+- CI/CD pipeline with GitHub Actions
+- ESLint + Prettier configuration
+- Immer for grid cloning (structural sharing)
+- React.memo on 13 UI components
+- CSP security (pixi.js/unsafe-eval for compliance)
+- Integer overflow protection
+
+### Sprint 3: Testing ✓ (2025-12-03)
+- TickSystem tests - 78 tests (99% coverage)
+- gameStore tests - 104 tests (90% coverage)
+- Pathfinding tests - 82 tests (97% coverage)
+- MalwareAI tests - 75 tests (75% coverage)
+- **Total: 376 tests, ~53% coverage**
+
+### Sprint 4: Architecture (In Progress)
+- [x] Remove Expedition model - deleted 246 lines
+- [x] Integrate BehaviorSystem into tick loop
+- [x] Split gameStore Phase 1 - BehaviorSlice, ConfigSlice, ResourceSlice
+- [ ] Split gameStore Phases 2-5 (merged into Sprint 5)
+
 ---
 
 ## Known Issues (Backlog)
 
-- Units cannot move after victory (tick loop blocked)
-- Grid not rendering on initial page load (PixiJS timing)
-- Create legend for viruses/tile colors/symbols
-- Balance: Worms replicate too fast (exponential growth overwhelms player)
+### Critical (P0)
+- [x] ~~Minimal test coverage~~ → Fixed: 376 tests, ~53% coverage
+- [x] ~~BehaviorSystem not integrated~~ → Fixed: wired into tick loop
+- [ ] Victory condition is "kill all" not strategic objective → Sprint 5
+- [ ] Worm replication too fast (5-tick cooldown) → Sprint 5
+
+### High Priority (P1)
+- [ ] Energy resource unused (no regeneration, no cost) → Sprint 5
+- [ ] Memory resource unused (no capacity gating) → Future
+- [ ] No intervention system during expeditions → Sprint 5 partial
+
+### Medium Priority (P2)
+- [ ] Units cannot move after victory (tick loop stops)
+- [ ] No pathfinding cache (performance)
+- [ ] No error boundaries in React components
+- [ ] 551-line gameStore still large → Sprint 5
+
+### Low Priority (P3)
+- [ ] Legend for tile colors/symbols
+- [ ] Service worker cache versioning
+- [ ] Cross-tab state synchronization
 
 ---
 
-## Comprehensive Review Results (2025-12-03)
+## Resource Design (Updated)
 
-**Overall Grade: B (78/100)**
+### Per-Expedition Resources
 
-### Critical Issues (P0)
+| Resource | Function | Current | Target |
+|----------|----------|---------|--------|
+| **Cycles** | Deploy cost (pre-expedition) | ✅ Working | Maintain |
+| **Energy** | Deploy cost (mid-expedition), interventions | ❌ Unused | Sprint 5 |
+| **Memory** | Process capacity limit | ❌ Unused | Future |
 
-| Issue | Location | Status |
-|-------|----------|--------|
-| Minimal test coverage (~2.5%) | Only `SaveManager.test.ts` exists | ✅ Fixed: 376 tests, ~53% coverage |
-| Worm replication TODO incomplete | `MalwareAI.ts:350` | Core mechanic non-functional |
-| Unused Expedition model (246 lines) | `src/core/models/expedition.ts` | ✅ Fixed: Deleted, refactored systems |
-| BehaviorSystem not integrated | `BehaviorSystem.ts` | ✅ Fixed: Wired into tick loop |
+### Persistent Resources
 
-### High Priority (P1)
+| Resource | Function | Status |
+|----------|----------|--------|
+| **Data** | Upgrade currency | ✅ Working |
 
-| Issue | Category | Location |
-|-------|----------|----------|
-| Grid cloning 184KB/tick | Performance | `gameStore.ts:27-35` |
-| No React memoization | Performance | All UI components |
-| 664-line monolithic store | Code Quality | `gameStore.ts` |
-| CSP allows 'unsafe-eval' | Security | `index.html:10` |
-| Integer overflow in rewards | Security | `gameStore.ts:519-530` |
-| Service worker cache poisoning | Security | `vite.config.ts:41-56` |
-| No pathfinding cache | Performance | `Pathfinding.ts` |
-| Missing Error Boundaries | React | All components |
-| No gameStore JSDoc | Documentation | `gameStore.ts:132-169` |
-| Cross-tab state corruption | Security | `SaveManager.ts` |
+### Energy System (Sprint 5 Target)
 
-### Phase Scores
+- **Starting Energy:** 75
+- **Max Energy:** 100
+- **Regeneration:** +5 per tick during expedition
+- **Mid-Expedition Deploy Cost:** Scout 20, Purifier 30
+- **Pre-Expedition Deploy:** Uses cycles (unchanged)
 
-| Phase | Category | Score |
-|-------|----------|-------|
-| 1A | Code Quality | 75/100 |
-| 1B | Architecture | 85/100 |
-| 2A | Security | 88/100 |
-| 2B | Performance | 70/100 |
-| 3A | Test Coverage | 25/100 |
-| 3B | Documentation | 70/100 |
-| 4A | Framework Best Practices | 82/100 |
-| 4B | CI/CD & DevOps | 30/100 |
+---
 
-### Strengths Identified
-
-- **Architecture:** Perfect framework independence in `/src/core/`
-- **TypeScript:** Strict mode with `noUncheckedIndexedAccess`
-- **Security:** Zero XSS vectors, comprehensive Zod validation
-- **Game Loop:** Clean phase-based TickSystem
-
-### Remediation Roadmap
-
-**Week 1: Foundation** ✓ (Completed 2025-12-03)
-- [x] Initialize git repository
-- [x] Set up GitHub Actions CI pipeline
-- [x] Add ESLint + Prettier
-- [x] Fix unused Legend import
-
-**Week 2: Performance & Security** ✓ (Completed 2025-12-03)
-- [x] Add Immer for grid cloning (structural sharing for fog of war updates)
-- [x] Add React.memo to UI components (13 components memoized)
-- [x] Remove CSP 'unsafe-eval' (Sprint 1)
-- [x] Add integer overflow protection (Sprint 1)
-
-**Week 3-4: Testing** ✓ (Completed 2025-12-03)
-- [x] TickSystem tests - 78 tests
-- [x] gameStore tests - 104 tests
-- [x] Pathfinding tests - 82 tests
-- [x] MalwareAI tests - 75 tests
-- **Total: 376 tests (339 new)**
-
-**Week 5-6: Architecture Cleanup** (In Progress)
-- [x] Remove Expedition model - deleted 246 lines, refactored 4 systems to use GameState interface
-- [x] Integrate BehaviorSystem - wired into tick loop, rules now execute each tick
-- [x] Split gameStore Phase 1 - extracted BehaviorSlice, ConfigSlice, ResourceSlice (664→551 lines)
-- [ ] Split gameStore Phases 2-5 - Entity, Grid, Expedition, Progression slices
-- [ ] Add README.md and developer docs (8h)
-
-### Test Coverage (Updated 2025-12-03)
+## Test Coverage
 
 | Category | Current | Target |
 |----------|---------|--------|
@@ -160,17 +238,7 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 | MalwareAI | 75% | 80% |
 | Models | 46% | 70% |
 | UI Components | 0% | 40% |
-| Persistence | 78% | 85% |
 | **Overall** | **~53%** | **70%** |
-
-### Performance Optimizations
-
-| Optimization | Memory Gain | CPU Gain | Effort |
-|-------------|-------------|----------|--------|
-| Immer for grid cloning | 75% | 60% | 2h |
-| React.memo on components | 5% | 30% | 4h |
-| Pathfinding cache | 15% | 60% | 3h |
-| Granular Zustand selectors | 0% | 20% | 6h |
 
 ---
 
@@ -183,24 +251,20 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 | quality | ✅ Passing | Type check, lint, format, tests |
 | security | ✅ Passing | npm audit |
 | build | ✅ Passing | Vite build + artifact upload |
-| deploy | ✅ Configured | GitHub Pages deployment (main branch only) |
-
-**Tools Configured:**
-- ESLint 9 + typescript-eslint
-- Prettier
-- Vitest with coverage
-- GitHub Pages deployment (auto-deploy on push to main)
+| deploy | ✅ Configured | GitHub Pages (main branch) |
 
 ---
 
-## Future (Out of Scope for MVP)
+## Future (Post-MVP)
 
 - Multiple sectors / campaign map
 - Process modules / loadout customization
-- Prestige / recompilation system
+- Prestige / recompilation system (design doc core feature)
+- Corruption system (design doc pressure mechanic)
 - Offline progression
 - Sound / music
-- Behavior rules executing automatically (currently UI-only)
+- Full intervention system (retreat, emergency protocols)
+- Memory capacity gating
 
 ---
 
@@ -210,24 +274,14 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 src/
 ├── core/           # Pure game logic (no React)
 │   ├── models/     # Grid, Process, Malware, Behavior
-│   ├── systems/    # Pathfinding, FogOfWar, Combat, BehaviorSystem, MalwareAI
+│   ├── systems/    # Pathfinding, FogOfWar, Combat, BehaviorSystem, MalwareAI, TickSystem
 │   └── generation/ # SectorGenerator
-├── game/state/     # Zustand store (gameStore.ts)
+├── game/state/     # Zustand store
+│   ├── gameStore.ts      # Main store (composes slices)
+│   ├── slices/           # Domain slices
+│   └── types.ts          # Shared types
 ├── renderer/       # PixiJS components
 └── ui/             # React UI panels
 ```
 
 **Principle:** Core logic is framework-agnostic TypeScript.
-
----
-
-## Resource Design
-
-| Type | Scope | Usage |
-|------|-------|-------|
-| Cycles | Per-expedition | Deploy units, earned from caches |
-| Data | Persistent | Earned from expeditions, spent on upgrades |
-
-**Upgrades:** +Max HP, +Attack, +Defense, +Starting Cycles (exponential cost scaling)
-
-**Difficulty:** Easy (0.5x malware, 0.75x rewards) / Normal / Hard (2x malware, 1.5x rewards)

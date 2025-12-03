@@ -146,7 +146,8 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 **Week 5-6: Architecture Cleanup** (In Progress)
 - [x] Remove Expedition model - deleted 246 lines, refactored 4 systems to use GameState interface
 - [x] Integrate BehaviorSystem - wired into tick loop, rules now execute each tick
-- [ ] Split gameStore into domain stores (8h)
+- [x] Split gameStore Phase 1 - extracted BehaviorSlice, ConfigSlice, ResourceSlice (664→551 lines)
+- [ ] Split gameStore Phases 2-5 - Entity, Grid, Expedition, Progression slices
 - [ ] Add README.md and developer docs (8h)
 
 ### Test Coverage (Updated 2025-12-03)

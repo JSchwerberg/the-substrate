@@ -12,23 +12,30 @@ import { generateSector, GeneratorOptions } from '@core/generation/SectorGenerat
 import { revealSpawnArea, updateFogOfWar } from '@core/systems/FogOfWar'
 import { setMovementTarget } from '@core/systems/MovementSystem'
 import { executeTick } from '@core/systems/TickSystem'
-import { BehaviorRule, RuleTemplate, createDefaultRules } from '@core/models/behavior'
 import { saveProgression, loadProgression } from '@persistence/SaveManager'
-import {
-  isValidDifficulty,
-  isValidBehaviorRule,
-  isValidArchetype,
-  isValidSpawnIndex,
-} from '@game/validation'
-import {
-  RESOURCES,
-  CAPACITY,
-  DEPLOY_COST,
-  UPGRADES,
-  REWARDS,
-  DIFFICULTY,
-  SAFE_LIMITS,
-} from '@core/constants/GameConfig'
+import { isValidArchetype, isValidSpawnIndex } from '@game/validation'
+import { DEPLOY_COST, UPGRADES, REWARDS, DIFFICULTY, SAFE_LIMITS } from '@core/constants/GameConfig'
+
+// Import slices
+import { createBehaviorSlice } from './slices/behaviorSlice'
+import { createConfigSlice } from './slices/configSlice'
+import { createResourceSlice, getInitialResources } from './slices/resourceSlice'
+
+// Re-export types for backward compatibility
+export type {
+  Resources,
+  ResourceCapacity,
+  Difficulty,
+  Upgrades,
+  UpgradeType,
+  PersistentData,
+  ExpeditionScore,
+  ExpeditionResult,
+  ExpeditionRewards,
+  BehaviorSlice,
+  ConfigSlice,
+  ResourceSlice,
+} from './types'
 
 // Create a new immutable grid with fog of war updates using Immer
 // Uses structural sharing - only changed tiles get new references
@@ -69,58 +76,22 @@ export const UPGRADE_COSTS: Record<UpgradeType, (level: number) => number> = {
 // Re-export rewards from config for backward compatibility
 export { REWARDS } from '@core/constants/GameConfig'
 
-// ============= State Types =============
+// Import types for use in GameState interface
+import type {
+  Resources,
+  Upgrades,
+  UpgradeType,
+  PersistentData,
+  ExpeditionScore,
+  ExpeditionResult,
+  ExpeditionRewards,
+  BehaviorSlice,
+  ConfigSlice,
+  ResourceSlice,
+} from './types'
 
-export interface Resources {
-  cycles: number
-  memory: number
-  energy: number
-}
-
-export interface ResourceCapacity {
-  maxCycles: number
-  maxMemory: number
-  maxEnergy: number
-}
-
-export interface ExpeditionScore {
-  cachesCollected: number
-  malwareDestroyed: number
-  ticksSurvived: number
-}
-
-export type ExpeditionResult = 'active' | 'victory' | 'defeat'
-
-export interface PersistentData {
-  totalData: number
-  expeditionsCompleted: number
-  expeditionsLost: number
-  totalMalwareDestroyed: number
-}
-
-export interface Upgrades {
-  maxHealth: number
-  attack: number
-  defense: number
-  startingCycles: number
-}
-
-export type UpgradeType = keyof Upgrades
-
-export type Difficulty = 'easy' | 'normal' | 'hard'
-
-export interface ExpeditionRewards {
-  cacheReward: number
-  malwareReward: number
-  victoryBonus: number
-  survivalBonus: number
-  totalReward: number
-}
-
-export interface GameState {
-  // Core state
-  resources: Resources
-  capacity: ResourceCapacity
+export interface GameState extends BehaviorSlice, ConfigSlice, ResourceSlice {
+  // Core state (non-sliced)
   currentSector: Sector | null
 
   // Expedition state
@@ -138,12 +109,6 @@ export interface GameState {
   persistentData: PersistentData
   upgrades: Upgrades
 
-  // Difficulty
-  selectedDifficulty: Difficulty
-
-  // Behavior rules
-  behaviorRules: BehaviorRule[]
-
   // Actions - Sector
   generateNewSector: (options: GeneratorOptions) => void
 
@@ -159,25 +124,10 @@ export interface GameState {
   // Actions - Visibility
   updateVisibility: () => void
 
-  // Actions - Resources
-  spendResources: (cost: Partial<Resources>) => boolean
-  addResources: (amount: Partial<Resources>) => void
-
   // Actions - Progression
   purchaseUpgrade: (upgradeType: UpgradeType) => boolean
   getUpgradeCost: (upgradeType: UpgradeType) => number
   claimExpeditionRewards: () => ExpeditionRewards
-
-  // Actions - Difficulty
-  setDifficulty: (difficulty: Difficulty) => void
-
-  // Actions - Behavior Rules
-  setBehaviorRules: (rules: BehaviorRule[]) => void
-  loadRuleTemplate: (template: RuleTemplate) => void
-  updateBehaviorRule: (ruleId: string, updates: Partial<BehaviorRule>) => void
-  deleteBehaviorRule: (ruleId: string) => void
-  addBehaviorRule: (rule: BehaviorRule) => void
-  reorderBehaviorRules: (rules: BehaviorRule[]) => void
 
   // Actions - Save/Load
   loadSavedData: () => Promise<void>
@@ -200,27 +150,16 @@ const initialUpgrades: Upgrades = {
   startingCycles: 0,
 }
 
-const initialCapacity: ResourceCapacity = {
-  maxCycles: CAPACITY.MAX_CYCLES,
-  maxMemory: CAPACITY.MAX_MEMORY,
-  maxEnergy: CAPACITY.MAX_ENERGY,
-}
-
-function getInitialResources(upgrades: Upgrades): Resources {
-  return {
-    cycles: RESOURCES.STARTING_CYCLES + upgrades.startingCycles * RESOURCES.CYCLES_PER_UPGRADE,
-    memory: RESOURCES.STARTING_MEMORY,
-    energy: RESOURCES.STARTING_ENERGY,
-  }
-}
-
 // ============= Store =============
 
 export const useGameStore = create<GameState>()(
   subscribeWithSelector((set, get) => ({
-    // Initial state
-    resources: getInitialResources(initialUpgrades),
-    capacity: initialCapacity,
+    // Compose slices
+    ...createBehaviorSlice(set, get, undefined as never),
+    ...createConfigSlice(set, get, undefined as never),
+    ...createResourceSlice(set, get, undefined as never),
+
+    // Initial state (non-sliced)
     currentSector: null,
     expeditionActive: false,
     expeditionResult: 'active',
@@ -237,8 +176,6 @@ export const useGameStore = create<GameState>()(
     combatLog: [],
     persistentData: initialPersistentData,
     upgrades: initialUpgrades,
-    selectedDifficulty: 'normal',
-    behaviorRules: createDefaultRules('aggressive'),
 
     // Generate a new sector
     generateNewSector: (options: GeneratorOptions) => {
@@ -482,39 +419,6 @@ export const useGameStore = create<GameState>()(
       })
     },
 
-    // Spend resources
-    spendResources: (cost: Partial<Resources>) => {
-      const { resources } = get()
-
-      // Check if we can afford
-      if ((cost.cycles ?? 0) > resources.cycles) return false
-      if ((cost.memory ?? 0) > resources.memory) return false
-      if ((cost.energy ?? 0) > resources.energy) return false
-
-      set({
-        resources: {
-          cycles: resources.cycles - (cost.cycles ?? 0),
-          memory: resources.memory - (cost.memory ?? 0),
-          energy: resources.energy - (cost.energy ?? 0),
-        },
-      })
-
-      return true
-    },
-
-    // Add resources
-    addResources: (amount: Partial<Resources>) => {
-      const { resources, capacity } = get()
-
-      set({
-        resources: {
-          cycles: Math.min(capacity.maxCycles, resources.cycles + (amount.cycles ?? 0)),
-          memory: Math.min(capacity.maxMemory, resources.memory + (amount.memory ?? 0)),
-          energy: Math.min(capacity.maxEnergy, resources.energy + (amount.energy ?? 0)),
-        },
-      })
-    },
-
     // Purchase an upgrade
     purchaseUpgrade: (upgradeType: UpgradeType) => {
       const { upgrades, persistentData } = get()
@@ -603,68 +507,6 @@ export const useGameStore = create<GameState>()(
         survivalBonus,
         totalReward,
       }
-    },
-
-    // Set difficulty (with validation)
-    setDifficulty: (difficulty: Difficulty) => {
-      if (!isValidDifficulty(difficulty)) {
-        console.warn(`Invalid difficulty: ${difficulty}`)
-        return
-      }
-      set({ selectedDifficulty: difficulty })
-    },
-
-    // Set behavior rules (with validation)
-    setBehaviorRules: (rules: BehaviorRule[]) => {
-      // Validate each rule at runtime to catch corrupted data
-      const validRules = rules.filter(rule => isValidBehaviorRule(rule))
-      if (validRules.length !== rules.length) {
-        console.warn(`Filtered ${rules.length - validRules.length} invalid behavior rules`)
-      }
-      set({ behaviorRules: validRules })
-    },
-
-    // Load rule template
-    loadRuleTemplate: (template: RuleTemplate) => {
-      set({ behaviorRules: createDefaultRules(template) })
-    },
-
-    // Update a specific behavior rule
-    updateBehaviorRule: (ruleId: string, updates: Partial<BehaviorRule>) => {
-      set(state => ({
-        behaviorRules: state.behaviorRules.map(rule =>
-          rule.id === ruleId ? { ...rule, ...updates } : rule
-        ),
-      }))
-    },
-
-    // Delete a behavior rule
-    deleteBehaviorRule: (ruleId: string) => {
-      set(state => ({
-        behaviorRules: state.behaviorRules.filter(rule => rule.id !== ruleId),
-      }))
-    },
-
-    // Add a new behavior rule (with validation)
-    addBehaviorRule: (rule: BehaviorRule) => {
-      // Runtime validation to catch corrupted data
-      if (!isValidBehaviorRule(rule)) {
-        console.warn('Attempted to add invalid behavior rule')
-        return
-      }
-      set(state => ({
-        behaviorRules: [...state.behaviorRules, rule],
-      }))
-    },
-
-    // Reorder behavior rules (for drag-and-drop or priority changes)
-    reorderBehaviorRules: (rules: BehaviorRule[]) => {
-      // Update priorities based on new order
-      const reorderedRules = rules.map((rule, index) => ({
-        ...rule,
-        priority: index + 1,
-      }))
-      set({ behaviorRules: reorderedRules })
     },
 
     // Load saved data from IndexedDB

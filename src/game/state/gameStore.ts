@@ -633,7 +633,7 @@ export const useGameStore = create<GameState>()(
             behaviorRules: savedData.behaviorRules,
             resources: getInitialResources(savedData.upgrades),
           })
-          console.log('Loaded saved progression data')
+          console.info('Loaded saved progression data')
         }
       } catch (error) {
         console.error('Failed to load saved data:', error)
@@ -644,7 +644,7 @@ export const useGameStore = create<GameState>()(
     autoSaveProgression: async () => {
       try {
         await saveProgression(get())
-        console.log('Auto-saved progression')
+        console.info('Auto-saved progression')
       } catch (error) {
         console.error('Failed to auto-save progression:', error)
       }

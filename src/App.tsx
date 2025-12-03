@@ -13,7 +13,6 @@ import {
   ExpeditionRewards,
   DifficultySelector,
   LoadingScreen,
-  Legend,
 } from '@ui/index'
 
 function App() {

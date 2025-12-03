@@ -264,7 +264,7 @@ function ensurePathExists(
   if (hasPath(grid, spawn, exit)) return
 
   // Carve a simple corridor
-  let current = { ...spawn }
+  const current = { ...spawn }
 
   while (current.x < exit.x) {
     current.x++

@@ -402,7 +402,7 @@ export function executeTick(context: TickContext): TickResult {
 
   // Phase 1.5: Cache Collection
   const cacheResult = cacheCollectionPhase(updatedProcesses, grid)
-  let updatedGrid = cacheResult.grid
+  const updatedGrid = cacheResult.grid
   cacheResult.logs.forEach(addLog)
 
   // Phase 2: Process Combat

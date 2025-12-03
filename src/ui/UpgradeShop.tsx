@@ -27,7 +27,7 @@ export function UpgradeShop({ onClose }: UpgradeShopProps) {
     const success = purchaseUpgrade(upgradeType)
     if (!success) {
       // Could add a visual feedback for insufficient funds
-      console.log('Cannot afford upgrade')
+      console.warn('Cannot afford upgrade')
     }
   }
 

@@ -367,8 +367,15 @@ export const useGameStore = create<GameState>()(
         selectedDifficulty,
       } = get()
 
-      // Block tick on defeat, but allow continuation after victory for cache collection
-      if (!currentSector || isPaused || !expeditionActive || expeditionResult === 'defeat') return
+      // Block tick when expedition is not active or has concluded
+      if (
+        !currentSector ||
+        isPaused ||
+        !expeditionActive ||
+        expeditionResult === 'defeat' ||
+        expeditionResult === 'victory'
+      )
+        return
 
       // Execute tick using the core TickSystem
       const result = executeTick({

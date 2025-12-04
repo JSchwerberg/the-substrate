@@ -213,6 +213,9 @@ export function processCombatPhase(processes: Process[], malware: Malware[]): Pr
   const updatedProcesses = processes.map(process => {
     if (process.status === 'destroyed') return process
 
+    // Respect player retreat commands - don't auto-attack if moving
+    if (process.status === 'moving') return process
+
     // Find adjacent malware
     const adjacentMalware = updatedMalware.filter(
       m => m.status !== 'destroyed' && getManhattanDistance(process.position, m.position) <= 1

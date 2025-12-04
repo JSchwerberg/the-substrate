@@ -84,7 +84,7 @@ function App() {
                 overflow: 'hidden',
               }}
             >
-              {/* Left Sidebar: Deployment or Process Info */}
+              {/* Left Sidebar: Deployment and Process Info */}
               <div
                 style={{
                   padding: '16px',
@@ -94,17 +94,13 @@ function App() {
                   backgroundColor: '#0f0f1a',
                   borderRight: '1px solid #333',
                   minWidth: '280px',
+                  maxHeight: 'calc(100vh - 120px)',
+                  overflowY: 'auto',
                 }}
               >
-                {/* Show Process Info if selected, otherwise show Deployment and Difficulty */}
-                {selectedProcessId ? (
-                  <ProcessInfoPanel />
-                ) : (
-                  <>
-                    <DeploymentPanel />
-                    <DifficultySelector />
-                  </>
-                )}
+                <DeploymentPanel />
+                {selectedProcessId && <ProcessInfoPanel />}
+                {!selectedProcessId && <DifficultySelector />}
               </div>
 
               {/* Center: Game Canvas */}

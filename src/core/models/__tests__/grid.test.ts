@@ -109,7 +109,7 @@ describe('Grid Model', () => {
       setTileType(grid, { x: 2, y: 2 }, 'empty')
       expect(isWalkable(getTile(grid, { x: 2, y: 2 }))).toBe(true)
 
-      setTileType(grid, { x: 2, y: 2 }, 'cache')
+      setTileType(grid, { x: 2, y: 2 }, 'data_cache')
       expect(isWalkable(getTile(grid, { x: 2, y: 2 }))).toBe(true)
     })
   })

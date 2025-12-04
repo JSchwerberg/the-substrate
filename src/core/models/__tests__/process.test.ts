@@ -403,7 +403,9 @@ describe('Process Model', () => {
     it('should have purifier archetype defined', () => {
       expect(ARCHETYPES.purifier).toBeDefined()
       expect(ARCHETYPES.purifier.name).toBe('Purifier')
-      expect(ARCHETYPES.purifier.baseStats.attack).toBeGreaterThan(ARCHETYPES.scout.baseStats.attack)
+      expect(ARCHETYPES.purifier.baseStats.attack).toBeGreaterThan(
+        ARCHETYPES.scout.baseStats.attack
+      )
     })
   })
 })

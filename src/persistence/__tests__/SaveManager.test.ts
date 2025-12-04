@@ -350,6 +350,7 @@ describe('SaveManager', () => {
           upgrades: createMockUpgrades({ maxHealth: 10 }),
           selectedDifficulty: 'hard' as const,
           behaviorRules: createMockBehaviorRules(),
+          campaign: null,
           savedAt: Date.now(),
         },
         expedition: {
@@ -378,6 +379,7 @@ describe('SaveManager', () => {
           upgrades: createMockUpgrades(),
           selectedDifficulty: 'easy' as const,
           behaviorRules: [],
+          campaign: null,
           savedAt: Date.now(),
         },
         expedition: null,
@@ -512,6 +514,7 @@ describe('SaveManager', () => {
           upgrades: createMockUpgrades(),
           selectedDifficulty: 'normal' as const,
           behaviorRules: [],
+          campaign: null,
           savedAt: Date.now(),
         },
       }

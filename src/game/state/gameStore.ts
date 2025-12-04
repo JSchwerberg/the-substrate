@@ -35,6 +35,7 @@ import { createEntitySlice } from './slices/entitySlice'
 import { createGridSlice } from './slices/gridSlice'
 import { createExpeditionSlice } from './slices/expeditionSlice'
 import { createProgressionSlice, UPGRADE_COSTS } from './slices/progressionSlice'
+import { createCampaignSlice } from './slices/campaignSlice'
 
 // Re-export types for backward compatibility
 export type {
@@ -54,6 +55,7 @@ export type {
   GridSlice,
   ExpeditionSlice,
   ProgressionSlice,
+  CampaignSlice,
 } from './types'
 
 // Re-export upgrade costs for backward compatibility
@@ -72,6 +74,7 @@ import type {
   GridSlice,
   ExpeditionSlice,
   ProgressionSlice,
+  CampaignSlice,
 } from './types'
 
 // ============= Deployment Costs =============
@@ -105,6 +108,7 @@ export function calculateUsedMemory(processes: Process[]): number {
 interface OrchestrationActions {
   generateNewSector: (options: GeneratorOptions) => void
   deployProcess: (archetype: ProcessArchetype, spawnIndex: number) => void
+  deployFromPool: (processId: string, spawnIndex: number) => void
   moveSelectedProcess: (target: GridPosition) => void
   tick: () => void
   executeIntervention: (type: InterventionType) => boolean
@@ -121,6 +125,7 @@ export interface GameState
     GridSlice,
     ExpeditionSlice,
     ProgressionSlice,
+    CampaignSlice,
     OrchestrationActions {}
 
 // ============= Store =============
@@ -135,6 +140,7 @@ export const useGameStore = create<GameState>()(
     ...createGridSlice(set, get, undefined as never),
     ...createExpeditionSlice(set, get, undefined as never),
     ...createProgressionSlice(set, get, undefined as never),
+    ...createCampaignSlice(set, get, undefined as never),
 
     // ============= Orchestration Methods =============
 
@@ -267,6 +273,68 @@ export const useGameStore = create<GameState>()(
         get().startExpedition()
       }
 
+      get().updateVisibility()
+    },
+
+    // Deploy a process from the campaign pool - FREE (reward for keeping processes alive)
+    deployFromPool: (processId: string, spawnIndex: number) => {
+      const { campaign, currentSector, processes } = get()
+      if (!campaign || !currentSector) {
+        console.warn('Cannot deploy from pool: no active campaign or sector')
+        return
+      }
+
+      // Find process in pool
+      const poolProcess = campaign.processPool.find(p => p.id === processId)
+      if (!poolProcess) {
+        console.warn(`Process ${processId} not found in pool`)
+        return
+      }
+
+      // Validate spawn index
+      if (!isValidSpawnIndex(spawnIndex, currentSector.spawnPoints.length)) {
+        console.warn(`Invalid spawn index: ${spawnIndex}`)
+        return
+      }
+
+      const spawnPoint = currentSector.spawnPoints[spawnIndex]
+      if (!spawnPoint) return
+
+      // Check if spawn point is already occupied
+      const occupied = processes.some(
+        p => p.position.x === spawnPoint.x && p.position.y === spawnPoint.y
+      )
+      if (occupied) {
+        console.warn('Spawn point is occupied')
+        return
+      }
+
+      // Check memory capacity
+      const { capacity } = get()
+      const usedMemory = calculateUsedMemory(processes)
+      const memoryCost = getMemoryCost(poolProcess.archetype)
+      if (usedMemory + memoryCost > capacity.maxMemory) {
+        console.warn(`Insufficient memory: ${usedMemory}/${capacity.maxMemory}, need ${memoryCost}`)
+        return
+      }
+
+      // Remove from pool
+      get().removeFromProcessPool(processId)
+
+      // Update position to spawn point
+      const deployedProcess: Process = {
+        ...poolProcess,
+        position: { ...spawnPoint },
+        targetPosition: null,
+        path: [],
+        pathIndex: 0,
+        status: 'idle',
+      }
+
+      // Add to active processes
+      get().addProcess(deployedProcess)
+
+      // Update visibility
       get().updateVisibility()
     },
 
@@ -416,3 +484,4 @@ export const selectMalware = (state: GameState) => state.malware
 export const selectSelectedProcessId = (state: GameState) => state.selectedProcessId
 export const selectExpeditionActive = (state: GameState) => state.expeditionActive
 export const selectIsPaused = (state: GameState) => state.isPaused
+export const selectProcessPool = (state: GameState) => state.campaign?.processPool ?? []

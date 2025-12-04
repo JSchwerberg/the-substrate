@@ -111,6 +111,80 @@ export const BehaviorRuleSchema = z.object({
   lastTriggered: z.number().int().min(0).optional(),
 })
 
+// ============= Campaign Schema =============
+
+export const VisibilityStateSchema = z.enum(['hidden', 'revealed', 'visible'])
+
+export const TileTypeSchema = z.enum([
+  'empty',
+  'blocked',
+  'corruption',
+  'data_cache',
+  'spawn_point',
+  'exit_point',
+])
+
+export const CampaignTileSchema = z.object({
+  type: TileTypeSchema,
+  visibility: VisibilityStateSchema,
+  corruptionLevel: z.number().min(0).max(100),
+  entityIds: z.array(z.string()),
+})
+
+export const CampaignGridSchema = z.object({
+  width: z.number().int().min(1),
+  height: z.number().int().min(1),
+  tiles: z.array(z.array(CampaignTileSchema)),
+})
+
+export const SectorStatusSchema = z.enum(['unexplored', 'in_progress', 'cleared', 'lost'])
+
+export const SectorSizeSchema = z.enum(['small', 'medium', 'large'])
+
+export const SectorDifficultySchema = z.enum(['trivial', 'easy', 'normal', 'hard', 'extreme'])
+
+export const SectorConfigSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  size: SectorSizeSchema,
+  difficulty: SectorDifficultySchema,
+  seed: z.number().int(),
+  corruptionDensity: z.number().min(0).max(1),
+  malwareDensity: z.number().min(0).max(1),
+  cacheCount: z.number().int().min(0),
+})
+
+export const SectorStateSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  status: SectorStatusSchema,
+  config: SectorConfigSchema,
+  grid: CampaignGridSchema.nullable(),
+  spawnPoints: z.array(GridPositionSchema),
+  killedMalwareIds: z.array(z.string()),
+  corruptionPercent: z.number().min(0).max(100),
+  mapPosition: z.object({
+    x: z.number(),
+    y: z.number(),
+  }),
+})
+
+export const SectorConnectionSchema = z.object({
+  from: z.string(),
+  to: z.string(),
+})
+
+export const CampaignSchema = z.object({
+  id: z.string(),
+  sectors: z.array(SectorStateSchema),
+  connections: z.array(SectorConnectionSchema),
+  selectedSectorId: z.string().nullable(),
+  activeSectorId: z.string().nullable(),
+  processPool: z.array(z.lazy(() => ProcessSchema)),
+  createdAt: z.number().int().min(0),
+  lastPlayedAt: z.number().int().min(0),
+})
+
 // ============= Saved Progression =============
 
 export const SavedProgressionSchema = z.object({
@@ -119,6 +193,7 @@ export const SavedProgressionSchema = z.object({
   upgrades: UpgradesSchema,
   selectedDifficulty: DifficultySchema,
   behaviorRules: z.array(BehaviorRuleSchema),
+  campaign: CampaignSchema.nullable(),
   savedAt: z.number().int().min(0),
 })
 
@@ -161,9 +236,7 @@ export const MalwareSchema = z.object({
   detonationTimer: z.number().int().min(0).optional(),
 })
 
-// Tile types
-export const TileTypeSchema = z.enum(['floor', 'wall', 'spawn', 'exit', 'cache'])
-
+// Tile schema for old expedition saves
 export const TileSchema = z.object({
   type: TileTypeSchema,
   visible: z.boolean(),

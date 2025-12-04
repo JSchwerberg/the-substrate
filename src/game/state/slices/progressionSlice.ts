@@ -157,6 +157,12 @@ export const createProgressionSlice: StateCreator<GameState, [], [], Progression
           behaviorRules: savedData.behaviorRules,
           resources: getInitialResources(savedData.upgrades),
         })
+
+        // Restore campaign state if present
+        if (savedData.campaign) {
+          set({ campaign: savedData.campaign })
+        }
+
         console.info('Loaded saved progression data')
       }
     } catch (error) {

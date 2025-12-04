@@ -5,6 +5,7 @@
 
 import type { GameState, PersistentData, Upgrades, Difficulty } from '@game/state/gameStore'
 import type { BehaviorRule } from '@core/models/behavior'
+import type { Campaign } from '@core/models/campaign'
 import { ImportDataSchema } from './schemas'
 import { ZodError } from 'zod'
 
@@ -16,6 +17,7 @@ export interface SavedProgression {
   upgrades: Upgrades
   selectedDifficulty: Difficulty
   behaviorRules: BehaviorRule[]
+  campaign: Campaign | null
   savedAt: number
 }
 
@@ -98,6 +100,7 @@ export async function saveProgression(state: GameState): Promise<void> {
         upgrades: state.upgrades,
         selectedDifficulty: state.selectedDifficulty,
         behaviorRules: state.behaviorRules,
+        campaign: state.campaign,
         savedAt: Date.now(),
       }
 

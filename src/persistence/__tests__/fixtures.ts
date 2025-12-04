@@ -103,6 +103,8 @@ export function createMockSerializableState(overrides?: Record<string, unknown>)
     upgrades: createMockUpgrades(),
     selectedDifficulty: 'normal' as Difficulty,
     behaviorRules: createMockBehaviorRules(),
+    campaign: null,
+    gameScreen: 'main_menu' as const,
     ...overrides,
   }
 }
@@ -120,6 +122,7 @@ export function createMockGameState(overrides?: Partial<GameState>): GameState {
     // Orchestration actions
     generateNewSector: () => {},
     deployProcess: () => {},
+    deployFromPool: () => {},
     moveSelectedProcess: () => {},
     tick: () => {},
     executeIntervention: () => false,
@@ -171,5 +174,17 @@ export function createMockGameState(overrides?: Partial<GameState>): GameState {
     }),
     loadSavedData: async () => {},
     autoSaveProgression: async () => {},
+    // Campaign slice
+    startNewCampaign: () => {},
+    selectSector: () => {},
+    startSectorExpedition: () => {},
+    endSectorExpedition: () => {},
+    returnToCampaignMap: () => {},
+    setGameScreen: () => {},
+    saveSectorState: () => {},
+    loadSectorState: () => {},
+    addToProcessPool: () => {},
+    removeFromProcessPool: () => {},
+    abandonCampaign: () => {},
   } as GameState
 }

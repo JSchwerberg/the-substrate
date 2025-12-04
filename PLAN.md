@@ -273,33 +273,33 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 
 ---
 
-### Sprint 12: Campaign Foundation
+### Sprint 12: Campaign Foundation ✓ (2025-12-03)
 
 **Objective:** Multi-sector structure with persistence
 
-1. **Campaign Data Model**
-   - [ ] `Campaign` interface: sectors[], connections[], currentSectorId
-   - [ ] `SectorState`: id, name, grid, fog state, killed malware IDs, corruption state, status
-   - [ ] `CampaignSlice` in Zustand store
-   - [ ] Campaign generation (3 sectors, 2-3 connections)
+1. **Campaign Data Model** ✓
+   - [x] `Campaign` interface: sectors[], connections[], currentSectorId
+   - [x] `SectorState`: id, name, grid, fog state, killed malware IDs, corruption state, status
+   - [x] `CampaignSlice` in Zustand store
+   - [x] Campaign generation (3 sectors, 2-3 connections)
 
-2. **Sector Persistence**
-   - [ ] Save/restore fog of war grid state
-   - [ ] Track killed malware IDs (don't respawn)
-   - [ ] Sector status: unexplored | in_progress | cleared | lost
-   - [ ] IndexedDB schema update for campaign data
+2. **Sector Persistence** ✓
+   - [x] Save/restore fog of war grid state
+   - [x] Track killed malware IDs (don't respawn)
+   - [x] Sector status: unexplored | in_progress | cleared | lost
+   - [x] IndexedDB schema update for campaign data
 
-3. **Process Pool**
-   - [ ] Surviving processes return to pool after expedition
-   - [ ] Pool persists across sectors
-   - [ ] Deploy from pool OR create new (costs resources)
+3. **Process Pool** ✓
+   - [x] Surviving processes return to pool after expedition
+   - [x] Pool persists across sectors
+   - [x] Deploy from pool OR create new (costs resources)
 
-4. **Campaign Map UI**
-   - [ ] New screen: CampaignMap component
-   - [ ] Node graph visualization (circles + connecting lines)
-   - [ ] Sector status indicators (color-coded)
-   - [ ] Click to select, "Deploy" button to start expedition
-   - [ ] Navigation: Campaign Map ↔ Expedition
+4. **Campaign Map UI** ✓
+   - [x] New screen: CampaignMap component
+   - [x] Node graph visualization (circles + connecting lines)
+   - [x] Sector status indicators (color-coded)
+   - [x] Click to select, "Deploy" button to start expedition
+   - [x] Navigation: Campaign Map ↔ Expedition
 
 **Exit Criteria:** Can select sector, complete expedition, return to map, select different sector with first sector's state preserved.
 

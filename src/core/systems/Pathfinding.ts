@@ -36,6 +36,11 @@ export function findPath(
     return null
   }
 
+  const startTile = getTile(grid, start)
+  if (!isWalkable(startTile)) {
+    return null
+  }
+
   const endTile = getTile(grid, end)
   if (!isWalkable(endTile)) {
     return null

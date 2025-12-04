@@ -2,7 +2,9 @@
  * Shared types for game state slices
  */
 
-import { BehaviorRule } from '@core/models/behavior'
+import type { BehaviorRule } from '@core/models/behavior'
+import type { Campaign } from '@core/models/campaign'
+import type { Process } from '@core/models/process'
 
 // ============= Resources =============
 
@@ -154,4 +156,23 @@ export interface ProgressionSlice {
   claimExpeditionRewards: () => ExpeditionRewards
   loadSavedData: () => Promise<void>
   autoSaveProgression: () => Promise<void>
+}
+
+/**
+ * Campaign slice - manages campaign state and sector navigation
+ */
+export interface CampaignSlice {
+  campaign: Campaign | null
+  gameScreen: 'main_menu' | 'campaign_map' | 'expedition'
+  startNewCampaign: (difficulty: Difficulty) => void
+  selectSector: (sectorId: string) => void
+  startSectorExpedition: () => void
+  endSectorExpedition: (result: 'victory' | 'defeat') => void
+  returnToCampaignMap: () => void
+  setGameScreen: (screen: 'main_menu' | 'campaign_map' | 'expedition') => void
+  saveSectorState: () => void
+  loadSectorState: (sectorId: string) => void
+  addToProcessPool: (processes: Process[]) => void
+  removeFromProcessPool: (processId: string) => void
+  abandonCampaign: () => void
 }

@@ -228,9 +228,11 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 | Pathfinding | 97% | 80% ✓ |
 | gameStore | 90% | 75% ✓ |
 | MalwareAI | 75% | 80% |
-| Models | 46% | 70% |
+| Models | ~80% | 70% ✓ |
 | UI Components | 0% | 40% |
-| **Overall** | **~53%** | **70%** |
+| **Overall** | **~60%** | **70%** |
+
+**Total Tests: 512**
 
 ---
 

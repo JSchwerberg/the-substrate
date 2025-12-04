@@ -360,8 +360,9 @@ export const useGameStore = create<GameState>()(
       const { selectedProcessId, processes, currentSector } = get()
       if (!selectedProcessId || !currentSector) return
 
-      const process = processes.find(p => p.id === selectedProcessId)
-      if (!process) return
+      const processIndex = processes.findIndex(p => p.id === selectedProcessId)
+      if (processIndex === -1) return
+      const process = processes[processIndex]!
 
       // Tutorial soft guard
       if (get().tutorialActive) {
@@ -378,7 +379,11 @@ export const useGameStore = create<GameState>()(
 
       const success = setMovementTarget(process, target, currentSector.grid)
       if (success) {
-        get().setProcesses([...processes])
+        // Create new process object to ensure React detects state change
+        // (setMovementTarget mutates the process in place)
+        const updatedProcesses = [...processes]
+        updatedProcesses[processIndex] = { ...process }
+        get().setProcesses(updatedProcesses)
       }
     },
 
@@ -474,8 +479,12 @@ export const useGameStore = create<GameState>()(
         return false
       }
 
-      const process = processes.find(p => p.id === selectedProcessId)
-      if (!process || process.status === 'destroyed') {
+      const processIndex = processes.findIndex(p => p.id === selectedProcessId)
+      if (processIndex === -1) {
+        return false
+      }
+      const process = processes[processIndex]!
+      if (process.status === 'destroyed') {
         return false
       }
 
@@ -512,7 +521,10 @@ export const useGameStore = create<GameState>()(
 
         if (nearestSpawn) {
           setMovementTarget(process, nearestSpawn, currentSector.grid)
-          get().setProcesses([...processes])
+          // Create new process object to ensure React detects state change
+          const updatedProcesses = [...processes]
+          updatedProcesses[processIndex] = { ...process }
+          get().setProcesses(updatedProcesses)
           get().addCombatLog(`[RETREAT] ${process.archetype} retreating to spawn`)
         }
       }

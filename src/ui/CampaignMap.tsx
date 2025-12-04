@@ -321,16 +321,16 @@ export const CampaignMap = memo(function CampaignMap() {
             </div>
 
             {/* Enter Sector Button */}
-            {selectedSector.status !== 'cleared' && selectedSector.status !== 'lost' && (
+            {selectedSector.status !== 'cleared' && (
               <button
                 onClick={startSectorExpedition}
                 style={{
                   marginTop: 'auto',
                   padding: '14px',
                   backgroundColor: '#16213e',
-                  border: '2px solid #4ecdc4',
+                  border: `2px solid ${selectedSector.status === 'lost' ? '#ef4444' : '#4ecdc4'}`,
                   borderRadius: '4px',
-                  color: '#4ecdc4',
+                  color: selectedSector.status === 'lost' ? '#ef4444' : '#4ecdc4',
                   fontSize: '1rem',
                   fontWeight: 700,
                   fontFamily: 'monospace',
@@ -339,15 +339,20 @@ export const CampaignMap = memo(function CampaignMap() {
                   textTransform: 'uppercase',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.backgroundColor = '#4ecdc420'
-                  e.currentTarget.style.boxShadow = '0 0 12px rgba(78, 205, 196, 0.3)'
+                  const hoverColor =
+                    selectedSector.status === 'lost'
+                      ? 'rgba(239, 68, 68, 0.3)'
+                      : 'rgba(78, 205, 196, 0.3)'
+                  e.currentTarget.style.backgroundColor =
+                    selectedSector.status === 'lost' ? '#ef444420' : '#4ecdc420'
+                  e.currentTarget.style.boxShadow = `0 0 12px ${hoverColor}`
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.backgroundColor = '#16213e'
                   e.currentTarget.style.boxShadow = 'none'
                 }}
               >
-                Enter Sector
+                {selectedSector.status === 'lost' ? 'Retry Sector' : 'Enter Sector'}
               </button>
             )}
           </>

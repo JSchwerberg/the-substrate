@@ -55,9 +55,9 @@ export const createCampaignSlice: StateCreator<GameState, [], [], CampaignSlice>
       return
     }
 
-    // Update sector status to in_progress if unexplored
+    // Update sector status to in_progress if unexplored or lost (retry)
     const updatedCampaign =
-      sector.status === 'unexplored'
+      sector.status === 'unexplored' || sector.status === 'lost'
         ? updateSectorInCampaign(campaign, sector.id, { status: 'in_progress' })
         : campaign
 

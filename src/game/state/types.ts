@@ -176,3 +176,70 @@ export interface CampaignSlice {
   removeFromProcessPool: (processId: string) => void
   abandonCampaign: () => void
 }
+
+// ============= Tutorial =============
+
+export type TutorialStepId =
+  | 'welcome'
+  | 'deploy_scout'
+  | 'select_unit'
+  | 'move_unit'
+  | 'fog_of_war'
+  | 'combat'
+  | 'dormant_malware'
+  | 'reach_exit'
+  | 'complete'
+
+export type TutorialAction =
+  | 'deploy_scout'
+  | 'deploy_purifier'
+  | 'select_process'
+  | 'move_process'
+  | 'click_tile'
+  | 'pause'
+  | 'unpause'
+  | 'any'
+
+export type TutorialConditionType =
+  | 'process_deployed'
+  | 'process_selected'
+  | 'process_at_position'
+  | 'malware_destroyed'
+  | 'tile_revealed'
+  | 'dormant_activated'
+  | 'process_at_exit'
+  | 'acknowledged'
+
+export interface TutorialStep {
+  id: TutorialStepId
+  title: string
+  description: string
+  hint?: string
+  allowedActions: TutorialAction[]
+  highlightPositions?: import('@core/models/grid').GridPosition[]
+  highlightElements?: string[]
+  completionCondition: TutorialConditionType
+  completionParams?: Record<string, unknown>
+}
+
+/**
+ * Tutorial slice - manages tutorial state and progression
+ */
+export interface TutorialSlice {
+  tutorialActive: boolean
+  tutorialCompleted: boolean
+  currentStepIndex: number
+  showTutorialPrompt: boolean
+  showDeviationReminder: boolean
+  deviationMessage: string
+
+  startTutorial: () => void
+  skipTutorial: () => void
+  advanceStep: () => void
+  setDeviationReminder: (show: boolean, message?: string) => void
+  completeTutorial: () => void
+  resetTutorial: () => void
+  getCurrentStep: () => TutorialStep | null
+  isActionAllowed: (action: TutorialAction) => boolean
+  checkStepCompletion: () => boolean
+}

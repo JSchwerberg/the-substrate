@@ -16,6 +16,8 @@ import {
   LoadingScreen,
   MainMenu,
   CampaignMap,
+  TutorialOverlay,
+  TutorialPromptModal,
 } from '@ui/index'
 
 function App() {
@@ -118,6 +120,7 @@ function App() {
                 <ErrorBoundary title="Rendering Error" showReload>
                   <GameCanvas />
                 </ErrorBoundary>
+                <TutorialOverlay />
               </div>
 
               {/* Right Sidebar: Resources */}
@@ -270,6 +273,9 @@ function App() {
           </div>
         </>
       )}
+
+      {/* Tutorial Prompt Modal (renders on all screens) */}
+      <TutorialPromptModal />
     </>
   )
 }

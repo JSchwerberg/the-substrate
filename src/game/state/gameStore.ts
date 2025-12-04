@@ -36,6 +36,7 @@ import { createGridSlice } from './slices/gridSlice'
 import { createExpeditionSlice } from './slices/expeditionSlice'
 import { createProgressionSlice, UPGRADE_COSTS } from './slices/progressionSlice'
 import { createCampaignSlice } from './slices/campaignSlice'
+import { createTutorialSlice } from './slices/tutorialSlice'
 
 // Re-export types for backward compatibility
 export type {
@@ -56,6 +57,11 @@ export type {
   ExpeditionSlice,
   ProgressionSlice,
   CampaignSlice,
+  TutorialSlice,
+  TutorialStep,
+  TutorialStepId,
+  TutorialAction,
+  TutorialConditionType,
 } from './types'
 
 // Re-export upgrade costs for backward compatibility
@@ -75,6 +81,7 @@ import type {
   ExpeditionSlice,
   ProgressionSlice,
   CampaignSlice,
+  TutorialSlice,
 } from './types'
 
 // ============= Deployment Costs =============
@@ -126,6 +133,7 @@ export interface GameState
     ExpeditionSlice,
     ProgressionSlice,
     CampaignSlice,
+    TutorialSlice,
     OrchestrationActions {}
 
 // ============= Store =============
@@ -141,6 +149,7 @@ export const useGameStore = create<GameState>()(
     ...createExpeditionSlice(set, get, undefined as never),
     ...createProgressionSlice(set, get, undefined as never),
     ...createCampaignSlice(set, get, undefined as never),
+    ...createTutorialSlice(set, get, undefined as never),
 
     // ============= Orchestration Methods =============
 
@@ -198,6 +207,14 @@ export const useGameStore = create<GameState>()(
       const { currentSector, processes, upgrades, expeditionActive, midExpeditionDeployCount } =
         get()
       if (!currentSector) return
+
+      // Tutorial soft guard
+      if (get().tutorialActive) {
+        const action = archetype === 'scout' ? 'deploy_scout' : 'deploy_purifier'
+        if (!get().isActionAllowed(action as import('./types').TutorialAction)) {
+          get().setDeviationReminder(true, 'Try deploying a Scout first!')
+        }
+      }
 
       // Validate archetype
       if (!isValidArchetype(archetype)) {
@@ -346,6 +363,19 @@ export const useGameStore = create<GameState>()(
       const process = processes.find(p => p.id === selectedProcessId)
       if (!process) return
 
+      // Tutorial soft guard
+      if (get().tutorialActive) {
+        const step = get().getCurrentStep()
+        if (step?.highlightPositions) {
+          const isHighlighted = step.highlightPositions.some(
+            p => p.x === target.x && p.y === target.y
+          )
+          if (!isHighlighted) {
+            get().setDeviationReminder(true, step.hint ?? 'Try the highlighted tile!')
+          }
+        }
+      }
+
       const success = setMovementTarget(process, target, currentSector.grid)
       if (success) {
         get().setProcesses([...processes])
@@ -423,6 +453,16 @@ export const useGameStore = create<GameState>()(
       }
 
       get().updateVisibility()
+
+      // Tutorial step completion check
+      if (get().tutorialActive) {
+        const step = get().getCurrentStep()
+        if (step && step.completionCondition !== 'acknowledged') {
+          if (get().checkStepCompletion()) {
+            get().advanceStep()
+          }
+        }
+      }
     },
 
     // Execute an intervention - costs energy, requires selected process

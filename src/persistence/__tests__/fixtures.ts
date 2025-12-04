@@ -105,6 +105,12 @@ export function createMockSerializableState(overrides?: Record<string, unknown>)
     behaviorRules: createMockBehaviorRules(),
     campaign: null,
     gameScreen: 'main_menu' as const,
+    tutorialActive: false,
+    tutorialCompleted: false,
+    currentStepIndex: 0,
+    showTutorialPrompt: false,
+    showDeviationReminder: false,
+    deviationMessage: '',
     ...overrides,
   }
 }
@@ -186,5 +192,15 @@ export function createMockGameState(overrides?: Partial<GameState>): GameState {
     addToProcessPool: () => {},
     removeFromProcessPool: () => {},
     abandonCampaign: () => {},
+    // Tutorial slice
+    startTutorial: () => {},
+    skipTutorial: () => {},
+    advanceStep: () => {},
+    setDeviationReminder: () => {},
+    completeTutorial: () => {},
+    resetTutorial: () => {},
+    getCurrentStep: () => null,
+    isActionAllowed: () => true,
+    checkStepCompletion: () => false,
   } as GameState
 }

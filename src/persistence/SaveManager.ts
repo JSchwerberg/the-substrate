@@ -18,6 +18,7 @@ export interface SavedProgression {
   selectedDifficulty: Difficulty
   behaviorRules: BehaviorRule[]
   campaign: Campaign | null
+  tutorialCompleted: boolean
   savedAt: number
 }
 
@@ -101,6 +102,7 @@ export async function saveProgression(state: GameState): Promise<void> {
         selectedDifficulty: state.selectedDifficulty,
         behaviorRules: state.behaviorRules,
         campaign: state.campaign,
+        tutorialCompleted: state.tutorialCompleted,
         savedAt: Date.now(),
       }
 

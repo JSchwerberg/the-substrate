@@ -194,6 +194,7 @@ export const SavedProgressionSchema = z.object({
   selectedDifficulty: DifficultySchema,
   behaviorRules: z.array(BehaviorRuleSchema),
   campaign: CampaignSchema.nullable(),
+  tutorialCompleted: z.boolean().default(false),
   savedAt: z.number().int().min(0),
 })
 

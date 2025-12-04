@@ -156,6 +156,7 @@ export const createProgressionSlice: StateCreator<GameState, [], [], Progression
           selectedDifficulty: savedData.selectedDifficulty,
           behaviorRules: savedData.behaviorRules,
           resources: getInitialResources(savedData.upgrades),
+          tutorialCompleted: savedData.tutorialCompleted ?? false,
         })
 
         // Restore campaign state if present

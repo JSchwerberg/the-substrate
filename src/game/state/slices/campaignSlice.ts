@@ -15,6 +15,12 @@ export const createCampaignSlice: StateCreator<GameState, [], [], CampaignSlice>
 
   // Start a new campaign with given difficulty
   startNewCampaign: (difficulty: Difficulty) => {
+    // Show tutorial prompt if not completed
+    if (!get().tutorialCompleted) {
+      set({ showTutorialPrompt: true })
+      return
+    }
+
     const campaign = generateCampaign(difficulty)
     set({
       campaign,

@@ -31,6 +31,8 @@ export const MainMenu = memo(function MainMenu() {
   const campaign = useGameStore(state => state.campaign)
   const startNewCampaign = useGameStore(state => state.startNewCampaign)
   const setGameScreen = useGameStore(state => state.setGameScreen)
+  const resetTutorial = useGameStore(state => state.resetTutorial)
+  const startTutorial = useGameStore(state => state.startTutorial)
 
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('normal')
 
@@ -40,6 +42,11 @@ export const MainMenu = memo(function MainMenu() {
 
   const handleContinueCampaign = () => {
     setGameScreen('campaign_map')
+  }
+
+  const handleStartTutorial = () => {
+    resetTutorial()
+    startTutorial()
   }
 
   return (
@@ -246,6 +253,34 @@ export const MainMenu = memo(function MainMenu() {
               Continue Campaign
             </button>
           )}
+
+          {/* Tutorial Button */}
+          <button
+            onClick={handleStartTutorial}
+            style={{
+              padding: '12px',
+              backgroundColor: 'transparent',
+              border: '1px solid #7ecbff',
+              borderRadius: '4px',
+              color: '#7ecbff',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              fontFamily: 'monospace',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              textTransform: 'uppercase',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundColor = '#7ecbff10'
+              e.currentTarget.style.boxShadow = '0 0 8px rgba(126, 203, 255, 0.2)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.boxShadow = 'none'
+            }}
+          >
+            Tutorial
+          </button>
         </div>
 
         {/* Campaign Info (if exists) */}

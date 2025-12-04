@@ -7,6 +7,7 @@ import { MalwareLayer } from './components/MalwareSprite'
 import { useGameStore } from '@game/state/gameStore'
 import { getTile, isWalkable } from '@core/models/grid'
 import { RENDER } from '@core/constants/GameConfig'
+import { TUTORIAL_STEPS } from '@core/constants/TutorialConfig'
 
 // Extend PixiJS components for React
 extend({ Container, Graphics })
@@ -40,6 +41,8 @@ export function GameCanvas() {
   const selectedProcessId = useGameStore(state => state.selectedProcessId)
   const expeditionActive = useGameStore(state => state.expeditionActive)
   const isPaused = useGameStore(state => state.isPaused)
+  const tutorialActive = useGameStore(state => state.tutorialActive)
+  const currentStepIndex = useGameStore(state => state.currentStepIndex)
 
   const generateNewSector = useGameStore(state => state.generateNewSector)
   const deployProcess = useGameStore(state => state.deployProcess)
@@ -348,6 +351,21 @@ export function GameCanvas() {
                 tileSize={TILE_SIZE}
                 selectedId={selectedProcessId}
               />
+              {/* Tutorial highlight layer */}
+              {tutorialActive && (
+                <pixiGraphics
+                  draw={g => {
+                    g.clear()
+                    const step = TUTORIAL_STEPS[currentStepIndex]
+                    if (step?.highlightPositions) {
+                      for (const pos of step.highlightPositions) {
+                        g.rect(pos.x * TILE_SIZE, pos.y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                      }
+                      g.stroke({ width: 3, color: 0xfbbf24, alpha: 0.8 })
+                    }
+                  }}
+                />
+              )}
             </>
           )}
         </pixiContainer>

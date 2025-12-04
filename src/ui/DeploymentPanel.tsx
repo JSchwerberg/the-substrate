@@ -3,13 +3,19 @@
  */
 
 import { memo } from 'react'
-import { useGameStore, getMemoryCost, calculateUsedMemory } from '@game/state/gameStore'
+import {
+  useGameStore,
+  getMemoryCost,
+  calculateUsedMemory,
+  selectProcessPool,
+} from '@game/state/gameStore'
 import { ARCHETYPES, ProcessArchetype } from '@core/models/process'
 import { DEPLOY_COST, ENERGY_DEPLOYMENT_COSTS, INTERVENTIONS } from '@core/constants/GameConfig'
 import type { InterventionType } from '@core/constants/GameConfig'
 
 export const DeploymentPanel = memo(function DeploymentPanel() {
   const deployProcess = useGameStore(state => state.deployProcess)
+  const deployFromPool = useGameStore(state => state.deployFromPool)
   const executeIntervention = useGameStore(state => state.executeIntervention)
   const expeditionActive = useGameStore(state => state.expeditionActive)
   const midExpeditionDeployCount = useGameStore(state => state.midExpeditionDeployCount)
@@ -17,11 +23,23 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
   const capacity = useGameStore(state => state.capacity)
   const processes = useGameStore(state => state.processes)
   const selectedProcessId = useGameStore(state => state.selectedProcessId)
+  const campaign = useGameStore(state => state.campaign)
+  const processPool = useGameStore(selectProcessPool)
 
   const usedMemory = calculateUsedMemory(processes)
+  const inCampaign = campaign !== null
 
   const handleDeploy = (archetype: ProcessArchetype) => {
     deployProcess(archetype, 0)
+  }
+
+  const handleDeployFromPool = (processId: string) => {
+    deployFromPool(processId, 0)
+  }
+
+  const canDeployFromPool = (archetype: ProcessArchetype) => {
+    const memoryCost = getMemoryCost(archetype)
+    return usedMemory + memoryCost <= capacity.maxMemory
   }
 
   const getDeploymentCost = (archetype: ProcessArchetype) => {
@@ -127,6 +145,116 @@ export const DeploymentPanel = memo(function DeploymentPanel() {
           />
         </div>
       </div>
+
+      {/* Process Pool Section - only in campaign mode */}
+      {inCampaign && processPool.length > 0 && (
+        <div style={{ marginBottom: '16px' }}>
+          <h4
+            style={{
+              margin: '0 0 8px 0',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              color: '#4ade80',
+              fontFamily: 'monospace',
+            }}
+          >
+            PROCESS POOL ({processPool.length})
+          </h4>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+              maxHeight: '200px',
+              overflowY: 'auto',
+            }}
+          >
+            {processPool.map(poolProcess => {
+              const archetype = ARCHETYPES[poolProcess.archetype]
+              const canDeploy = canDeployFromPool(poolProcess.archetype)
+
+              return (
+                <button
+                  key={poolProcess.id}
+                  onClick={() => handleDeployFromPool(poolProcess.id)}
+                  disabled={!canDeploy}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '10px 12px',
+                    backgroundColor: canDeploy ? '#16213e' : '#0f1621',
+                    border: `2px solid ${canDeploy ? '#4ade80' : '#333'}`,
+                    borderRadius: '4px',
+                    cursor: canDeploy ? 'pointer' : 'not-allowed',
+                    opacity: canDeploy ? 1 : 0.5,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={e => {
+                    if (canDeploy) {
+                      e.currentTarget.style.backgroundColor = '#1e2947'
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(74, 222, 128, 0.3)'
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (canDeploy) {
+                      e.currentTarget.style.backgroundColor = '#16213e'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }
+                  }}
+                >
+                  <div style={{ textAlign: 'left' }}>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: `#${archetype.color.toString(16).padStart(6, '0')}`,
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {poolProcess.name}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.65rem',
+                        color: '#888',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      HP: {poolProcess.stats.health}/{poolProcess.stats.maxHealth}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      color: '#4ade80',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    FREE
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Buy New Section Header - only show in campaign mode */}
+      {inCampaign && (
+        <h4
+          style={{
+            margin: '0 0 8px 0',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            color: '#7ecbff',
+            fontFamily: 'monospace',
+          }}
+        >
+          BUY NEW
+        </h4>
+      )}
 
       <div
         style={{

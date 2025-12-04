@@ -8,8 +8,7 @@ import type { GameState } from '../gameStore'
 import { getTile } from '@core/models/grid'
 
 import { TUTORIAL_STEPS } from '@core/constants/TutorialConfig'
-// TODO: Import when TutorialSector.ts is created
-// import { generateTutorialSector } from '@core/generation/TutorialSector'
+import { generateTutorialSector } from '@core/generation/TutorialSector'
 
 export const createTutorialSlice: StateCreator<GameState, [], [], TutorialSlice> = (set, get) => ({
   // Initial state
@@ -24,8 +23,7 @@ export const createTutorialSlice: StateCreator<GameState, [], [], TutorialSlice>
    * Start the tutorial by generating the tutorial sector
    */
   startTutorial: () => {
-    // TODO: Uncomment when generateTutorialSector is implemented
-    // const tutorialSector = generateTutorialSector()
+    const { sector, malware } = generateTutorialSector()
 
     set({
       tutorialActive: true,
@@ -34,9 +32,12 @@ export const createTutorialSlice: StateCreator<GameState, [], [], TutorialSlice>
       gameScreen: 'expedition',
     })
 
-    // TODO: Uncomment when generateTutorialSector is implemented
-    // Generate the tutorial sector
-    // get().setSector(tutorialSector)
+    // Set up the tutorial sector with fixed layout
+    get().setSector(sector)
+    get().setMalware(malware)
+    get().setProcesses([])
+    get().selectProcess(null)
+    get().resetExpedition()
   },
 
   /**

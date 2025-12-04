@@ -55,6 +55,11 @@ export const MEMORY_COST = {
 
 export const ENERGY_REGEN_PER_TICK = 5
 
+// ============= Spawn Healing =============
+
+/** HP restored per tick when process is on or adjacent to a spawn point */
+export const SPAWN_HEALING_PER_TICK = 5
+
 // ============= Upgrade System =============
 
 export const UPGRADES = {

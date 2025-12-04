@@ -16,7 +16,7 @@ import { Malware, createMalware } from '@core/models/malware'
 import { BehaviorRule } from '@core/models/behavior'
 import { calculateDamage } from '@core/systems/CombatSystem'
 import { processBehavior, type GameState as BehaviorGameState } from '@core/systems/BehaviorSystem'
-import { WORM } from '@core/constants/GameConfig'
+import { WORM, SPAWN_HEALING_PER_TICK } from '@core/constants/GameConfig'
 
 // ============= Types =============
 
@@ -139,6 +139,61 @@ export function cacheCollectionPhase(processes: Process[], grid: Grid): CacheCol
   }
 
   return { grid: updatedGrid, cachesCollected, logs }
+}
+
+// ============= Phase 1.7: Spawn Point Healing =============
+
+/**
+ * Processes on or adjacent to spawn points regenerate HP
+ */
+export function spawnHealingPhase(
+  processes: Process[],
+  spawnPoints: GridPosition[]
+): { processes: Process[]; logs: string[] } {
+  const logs: string[] = []
+
+  const updatedProcesses = processes.map(process => {
+    // Skip destroyed processes
+    if (process.status === 'destroyed') {
+      return process
+    }
+
+    // Skip if already at full health
+    if (process.stats.health >= process.stats.maxHealth) {
+      return process
+    }
+
+    // Check if process is on or adjacent to any spawn point
+    const isNearSpawn = spawnPoints.some(spawn => {
+      const distance = getManhattanDistance(process.position, spawn)
+      return distance <= 1 // On spawn (0) or adjacent (1)
+    })
+
+    if (!isNearSpawn) {
+      return process
+    }
+
+    // Heal the process
+    const healAmount = Math.min(
+      SPAWN_HEALING_PER_TICK,
+      process.stats.maxHealth - process.stats.health
+    )
+
+    if (healAmount > 0) {
+      logs.push(`[HEAL] ${process.name} +${healAmount} HP (near spawn)`)
+      return {
+        ...process,
+        stats: {
+          ...process.stats,
+          health: process.stats.health + healAmount,
+        },
+      }
+    }
+
+    return process
+  })
+
+  return { processes: updatedProcesses, logs }
 }
 
 // ============= Phase 2: Process Combat =============
@@ -518,6 +573,11 @@ export function executeTick(context: TickContext): TickResult {
   const cacheResult = cacheCollectionPhase(updatedProcesses, grid)
   const updatedGrid = cacheResult.grid
   cacheResult.logs.forEach(addLog)
+
+  // Phase 1.7: Spawn Point Healing
+  const healingResult = spawnHealingPhase(updatedProcesses, context.sector.spawnPoints)
+  updatedProcesses = healingResult.processes
+  healingResult.logs.forEach(addLog)
 
   // Phase 2: Process Combat
   const combatResult = processCombatPhase(updatedProcesses, malware)

@@ -221,7 +221,10 @@ export function processCombatPhase(processes: Process[], malware: Malware[]): Pr
       m => m.status !== 'destroyed' && getManhattanDistance(process.position, m.position) <= 1
     )
 
-    if (adjacentMalware.length === 0) return process
+    // Clear attacking status if no adjacent enemies
+    if (adjacentMalware.length === 0) {
+      return process.status === 'attacking' ? { ...process, status: 'idle' as const } : process
+    }
 
     // Attack the first adjacent malware
     const target = adjacentMalware[0]!

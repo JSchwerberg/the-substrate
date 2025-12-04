@@ -377,6 +377,34 @@ describe('processCombatPhase', () => {
     expect(result.processes[0]?.status).toBe('attacking')
   })
 
+  it('should clear attacking status when all adjacent enemies are destroyed', () => {
+    const process = createProcess('scout', { x: 0, y: 0 })
+    process.status = 'attacking'
+    const malware = createMalware('worm', { x: 5, y: 5 }) // Far away, not adjacent
+
+    const result = processCombatPhase([process], [malware])
+
+    expect(result.processes[0]?.status).toBe('idle')
+  })
+
+  it('should clear attacking status when no adjacent malware exists', () => {
+    const process = createProcess('scout', { x: 0, y: 0 })
+    process.status = 'attacking'
+
+    const result = processCombatPhase([process], [])
+
+    expect(result.processes[0]?.status).toBe('idle')
+  })
+
+  it('should preserve non-attacking status when no adjacent enemies', () => {
+    const process = createProcess('scout', { x: 0, y: 0 })
+    process.status = 'idle'
+
+    const result = processCombatPhase([process], [])
+
+    expect(result.processes[0]?.status).toBe('idle')
+  })
+
   it('should mark malware as revealed when attacked', () => {
     const process = createProcess('scout', { x: 0, y: 0 })
     const malware = createMalware('trojan', { x: 1, y: 0 })

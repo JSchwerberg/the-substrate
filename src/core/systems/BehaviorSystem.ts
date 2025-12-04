@@ -54,12 +54,22 @@ function getProcessesInRange(state: GameState, position: GridPosition, range: nu
 
 /**
  * Get malware within range of a position
+ * Only returns malware that are visible (tile not hidden AND malware revealed)
  */
 function getMalwareInRange(state: GameState, position: GridPosition, range: number): Malware[] {
   return getAliveMalware(state).filter(m => {
     const dx = Math.abs(m.position.x - position.x)
     const dy = Math.abs(m.position.y - position.y)
-    return dx + dy <= range
+    if (dx + dy > range) return false
+
+    // Check tile visibility - must not be hidden
+    const tile = getTile(state.grid, m.position)
+    if (!tile || tile.visibility === 'hidden') return false
+
+    // Check malware visibility - dormant malware must be revealed
+    if (!m.isRevealed) return false
+
+    return true
   })
 }
 
@@ -245,16 +255,23 @@ function attackNearest(
 }
 
 function moveToNearestEnemy(process: Process, state: GameState): ActionResult {
-  const enemies = getAliveMalware(state)
-  if (enemies.length === 0) {
+  // Only consider visible enemies (tile not hidden AND malware revealed)
+  const visibleEnemies = getAliveMalware(state).filter(m => {
+    const tile = getTile(state.grid, m.position)
+    if (!tile || tile.visibility === 'hidden') return false
+    if (!m.isRevealed) return false
+    return true
+  })
+
+  if (visibleEnemies.length === 0) {
     return { success: false, message: 'No enemies found' }
   }
 
-  // Find nearest enemy
-  let nearest = enemies[0]!
+  // Find nearest visible enemy
+  let nearest = visibleEnemies[0]!
   let nearestDist = getManhattanDistance(process.position, nearest.position)
 
-  for (const enemy of enemies) {
+  for (const enemy of visibleEnemies) {
     const dist = getManhattanDistance(process.position, enemy.position)
     if (dist < nearestDist) {
       nearest = enemy

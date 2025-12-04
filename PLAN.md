@@ -6,7 +6,7 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 
 **Target:** Web PWA
 **Visual Style:** 2D Pixel Art (placeholder shapes)
-**Status:** Core systems complete, design alignment in progress
+**Status:** MVP Complete (2025-12-03) - Starting Post-MVP Phase 1: Campaign & Corruption
 
 ---
 
@@ -26,21 +26,24 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 
 ### Current vs Design Doc (as of 2025-12-03)
 
-| Feature | Design Doc | Current Implementation | Priority |
-|---------|-----------|------------------------|----------|
-| **Victory Condition** | Reach exit / reclaim sector | Kill all malware | P0 - Change |
-| **Mid-Expedition Deployment** | Costs energy (intervention) | Costs cycles (unlimited) | P0 - Change |
-| **Worm Replication** | Spread and multiply | 5-tick cooldown (too fast) | P0 - Balance |
-| **Resource Triangle** | Cycles/Memory/Energy all meaningful | Only Cycles used | P1 - Enhance |
-| **Intervention System** | Spend energy for directives | Not implemented | P1 - Add |
-| **Corruption System** | Core pressure mechanic | Not implemented | P2 - Future |
-| **Prestige/Recompilation** | Major progression system | Not implemented | P2 - Future |
+| Feature | Design Doc | Current Implementation | Status |
+|---------|-----------|------------------------|--------|
+| **Victory Condition** | Reclaim sector | Destroy all corruption nodes | ✓ Planned (Sprint 13) |
+| **Mid-Expedition Deployment** | Costs energy | Energy with 1.5x scaling | ✓ Complete |
+| **Worm Replication** | Spread and multiply | 10-tick cooldown + max cap | ✓ Complete |
+| **Resource Triangle** | Cycles/Memory/Energy | All meaningful | ✓ Complete |
+| **Intervention System** | Energy directives | Retreat (50E) + Scan (30E) | ✓ Complete |
+| **Corruption System** | Core pressure mechanic | Planned | Sprint 13-14 |
+| **Multi-Sector Campaign** | Sector map | Planned | Sprint 12 |
+| **Prestige/Recompilation** | Major progression | Not implemented | Post-Corruption |
 
 ### Design Decisions Made
 
-1. **Victory Condition**: Change to "reach exit point" - strategic objective vs brute force
-2. **Mid-Expedition Deployment**: Costs energy instead of cycles (aligns with intervention design)
-3. **Worm Balance**: Increase cooldown (5 → 10 ticks) AND add max worm cap per sector
+1. **Victory Condition**: Destroy all corruption nodes (replaces exit points)
+2. **Mid-Expedition Deployment**: Costs energy with exponential scaling
+3. **Worm Balance**: 10-tick cooldown + max worm cap per sector
+4. **Campaign Structure**: Node map with 3 connected sectors
+5. **Corruption Spread**: 20 ticks within sector, 1% chance between sectors
 
 ---
 
@@ -249,16 +252,152 @@ Web-based PWA incremental/idle game with tactical grid-based exploration. MVP fo
 
 ---
 
-## Future (Post-MVP)
+## Post-MVP Phase 1: Campaign & Corruption System
 
-- Multiple sectors / campaign map
+### Design Decisions
+
+| Aspect | Decision |
+|--------|----------|
+| **Campaign structure** | Node map (3 sectors connected as graph) |
+| **Sector selection** | Player picks which sector to expedition into |
+| **Corruption source** | Corruption nodes (entities) generated on map |
+| **Victory condition** | Destroy all corruption nodes (replaces exit points) |
+| **Defeat condition** | Corruption reaches spawn points |
+| **Sector persistence** | Fog ✓, Malware deaths ✓, Corruption frozen when cleared |
+| **Process handling** | Return to pool after expedition, redeploy into next sector |
+| **Spread within sector** | Every 20 ticks to adjacent tiles |
+| **Spread between sectors** | 1% chance per tick, corrupts edge tiles |
+| **Corrupted tile effects** | 5 HP damage/tick + blocks vision |
+| **Spread timing** | Hybrid: slow real-time + burst on expedition end |
+| **Campaign saves** | One campaign at a time |
+
+---
+
+### Sprint 12: Campaign Foundation
+
+**Objective:** Multi-sector structure with persistence
+
+1. **Campaign Data Model**
+   - [ ] `Campaign` interface: sectors[], connections[], currentSectorId
+   - [ ] `SectorState`: id, name, grid, fog state, killed malware IDs, corruption state, status
+   - [ ] `CampaignSlice` in Zustand store
+   - [ ] Campaign generation (3 sectors, 2-3 connections)
+
+2. **Sector Persistence**
+   - [ ] Save/restore fog of war grid state
+   - [ ] Track killed malware IDs (don't respawn)
+   - [ ] Sector status: unexplored | in_progress | cleared | lost
+   - [ ] IndexedDB schema update for campaign data
+
+3. **Process Pool**
+   - [ ] Surviving processes return to pool after expedition
+   - [ ] Pool persists across sectors
+   - [ ] Deploy from pool OR create new (costs resources)
+
+4. **Campaign Map UI**
+   - [ ] New screen: CampaignMap component
+   - [ ] Node graph visualization (circles + connecting lines)
+   - [ ] Sector status indicators (color-coded)
+   - [ ] Click to select, "Deploy" button to start expedition
+   - [ ] Navigation: Campaign Map ↔ Expedition
+
+**Exit Criteria:** Can select sector, complete expedition, return to map, select different sector with first sector's state preserved.
+
+---
+
+### Sprint 13: Corruption Core
+
+**Objective:** Corruption mechanics within a single sector
+
+5. **Corruption Node Entity**
+   - [ ] New entity type: `CorruptionNode` (like Malware but stationary)
+   - [ ] Stats: HP (e.g., 150), no attack, high defense
+   - [ ] Generated during sector creation (2-4 per sector based on difficulty)
+   - [ ] Attackable by processes, triggers combat system
+   - [ ] On death: stop spreading from this node
+
+6. **Tile Corruption State**
+   - [ ] Add `corrupted: boolean` to Tile interface
+   - [ ] Corrupted tiles render with distinct visual (purple overlay?)
+   - [ ] Track corruption spread origin (which node)
+
+7. **Corruption Spread Phase**
+   - [ ] New tick phase: `corruptionSpreadPhase()` in TickSystem
+   - [ ] Every 20 ticks: each living node corrupts one adjacent non-corrupted tile
+   - [ ] Spread pattern: prioritize toward spawn points? Random?
+   - [ ] Corrupted tiles stay corrupted (no purification for now)
+
+8. **Corrupted Tile Effects**
+   - [ ] Damage: 5 HP/tick to any process on corrupted tile
+   - [ ] Vision: Corrupted tiles block line of sight (update FogOfWar)
+   - [ ] Pathfinding: Treat as walkable but costly? Or avoid?
+
+9. **Victory/Defeat Conditions**
+   - [ ] Remove exit point victory
+   - [ ] Victory: All corruption nodes destroyed
+   - [ ] Defeat: Any spawn point tile corrupted OR all processes destroyed
+   - [ ] Update ExpeditionStatus UI for new conditions
+
+**Exit Criteria:** Corruption nodes spawn, spread corruption, can be killed. Victory when all nodes dead, defeat when spawn corrupted.
+
+---
+
+### Sprint 14: Cross-Sector Spread
+
+**Objective:** Corruption pressure across the campaign
+
+10. **Global Corruption Tick**
+    - [ ] Background timer or expedition-end trigger
+    - [ ] For each sector with living corruption nodes:
+      - 1% chance per tick to spread to connected sector
+    - [ ] Spreading = add corrupted tiles to edge of target sector
+    - [ ] If target sector has no nodes, spawn one at corruption site
+
+11. **Campaign Pressure**
+    - [ ] While clearing one sector, others may worsen
+    - [ ] Visual indicator on campaign map: corruption level per sector
+    - [ ] Warning when sector corruption is critical
+
+12. **Sector Loss**
+    - [ ] If corruption reaches spawn in unattended sector = sector lost
+    - [ ] Lost sectors: can attempt to reclaim (harder) or abandon
+    - [ ] Game over if all sectors lost? Or home sector lost?
+
+**Exit Criteria:** Corruption spreads between sectors. Leaving a sector too long has consequences.
+
+---
+
+### Sprint 15: Polish & Balance
+
+13. **UI Enhancements**
+    - [ ] Corruption node health bars
+    - [ ] Spawn point danger indicator (corruption approaching)
+    - [ ] Sector corruption percentage on campaign map
+    - [ ] Combat log entries for corruption damage
+
+14. **Balance Tuning**
+    - [ ] Node HP vs process damage
+    - [ ] Spread rate (20 ticks) - too fast? too slow?
+    - [ ] Cross-sector spread (1%) - tune based on playtesting
+    - [ ] Corruption damage (5 HP) - meaningful but not instant death
+
+15. **Edge Cases**
+    - [ ] What if player has no processes and no resources?
+    - [ ] Corruption spreading while paused?
+    - [ ] Save/load mid-expedition with corruption state
+
+**Exit Criteria:** Playable, balanced corruption loop. Clear strategic tension.
+
+---
+
+## Future (Post-Corruption)
+
+- Prestige / recompilation system (RP currency, permanent upgrades)
 - Process modules / loadout customization
-- Prestige / recompilation system (design doc core feature)
-- Corruption system (design doc pressure mechanic)
+- More archetypes (Defender, Reclaimer)
+- Anomaly sectors (rule modifiers)
 - Offline progression
 - Sound / music
-- Full intervention system (retreat, emergency protocols)
-- Memory capacity gating
 
 ---
 

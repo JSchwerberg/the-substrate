@@ -8,7 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Overall Grade:** B (78/100) from comprehensive review (2025-12-03)
 **Test Coverage:** ~2.5% (critical gap - see PLAN.md for testing roadmap)
 
-### Recent Changes (Sprint 2 - 2025-12-03)
+### Recent Changes (Sprint 3 - 2025-12-03)
+- Added guided tutorial system for new players (9 steps, fixed sector layout)
+- Fixed process stuck in "Attacking" state when malware dies
+- Fixed "Chase Enemy" behavior targeting invisible/unrevealed enemies
+
+### Previous Changes (Sprint 2 - 2025-12-03)
 - Added Immer for grid cloning (structural sharing reduces memory/CPU)
 - Added React.memo to all 13 UI components (prevents unnecessary re-renders)
 
@@ -101,8 +106,7 @@ GitHub Actions workflow in `.github/workflows/ci.yml`:
 See `PLAN.md` for full details. Key items:
 - **Test coverage ~2.5%** - Only SaveManager.test.ts exists
 - **Unused Expedition model** (246 lines) - `src/core/models/expedition.ts` creates confusion
-- **BehaviorSystem not integrated** - Feature exists in UI but rules never execute in game loop
-- **664-line monolithic store** - `gameStore.ts` should be split into domain stores
+- **700+ line monolithic store** - `gameStore.ts` should be split into domain stores
 
 ## Development Guidelines
 
